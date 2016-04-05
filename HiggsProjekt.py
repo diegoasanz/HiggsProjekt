@@ -1,17 +1,24 @@
-# ==============================================
-# IMPORTS
-# ==============================================
-from ROOT import TGraphErrors, TCanvas, TH2D, gStyle, TH1F, gROOT, TLegend, TCut, TGraph, TProfile2D, TH2F, TProfile, TCutG, kGreen, TF1, TPie
-from TelescopeAnalysis import Analysis
-from CurrentInfo import Currents
-from numpy import array
-from math import sqrt, ceil, log
-from argparse import ArgumentParser
-from Extrema import Extrema2D
-from ChannelCut import ChannelCut
-from time import time, sleep
-from collections import OrderedDict
-from sys import stdout
+# ---------------------------------------------------
+#           HIGGS PROJECT for SMATEP
+#   author: Michael Reichmann
+# ---------------------------------------------------
+
+from ROOT import TFile
+from glob import glob
 from copy import deepcopy
 
-__author__ = 'DA'
+
+
+class Analsis:
+    def __init__(self):
+
+        self.DataFolder = 'l3higgs189/'
+        self.trees = self.load_trees()
+
+    def load_trees(self):
+        files = [TFile(f) for f in glob('{dir}*.root'.format(dir=self.DataFolder))]
+        trees = [f.Get('h20') for f in files]
+        return deepcopy(trees)
+
+if __name__ == "__main__":
+    z = Analsis()
