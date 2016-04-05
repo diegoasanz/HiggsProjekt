@@ -6,13 +6,10 @@
 from ROOT import TFile
 from glob import glob
 from copy import deepcopy
-<<<<<<< HEAD
 
 __author__ = 'Pin-Jung & Diego Alejandro'
-=======
-from Utils import *
 
->>>>>>> cfe1aabcb60022fa961d7db9d25380a7a2aac6be
+from Utils import *
 
 class Analsis:
     def __init__(self):
@@ -27,9 +24,6 @@ class Analsis:
         trees = [f.Get('h20') for f in files]
         dic = {f.GetName().split('/')[-1].strip('.root'): t for f, t in zip(files, trees)}
         return deepcopy(dic)
-
-
-__author__ = 'micha'
 
 if __name__ == '__main__':
     print_banner('STARTING HIGGS ANALYSIS')
