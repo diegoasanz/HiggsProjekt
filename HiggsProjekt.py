@@ -7,7 +7,7 @@ from ROOT import TFile
 from glob import glob
 from copy import deepcopy
 
-
+__author__ = 'Pin-Jung'
 
 class Analsis:
     def __init__(self):
