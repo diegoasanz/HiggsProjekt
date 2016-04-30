@@ -4,6 +4,7 @@
 # ---------------------------------------------------
 
 from ROOT import TFile
+from GetData import *
 from glob import glob
 from copy import deepcopy
 
@@ -25,6 +26,8 @@ class Analysis:
         # This calls the method 'load_trees' of the Analysis class, and the results are stored in the variable trees.
         # trees variable will have a dictionary with the tree name and the tree
         self.trees = self.load_trees()
+        self.names = self.getNamesTrees()
+        self.histograms = GetData(self.trees,self.names,'mmis').histograms
 
     # This method loads the trees from the root file located at the DataFolder
     def load_trees(self):
@@ -40,6 +43,11 @@ class Analysis:
         # returns a complete copy of this dictionary. If it was not copied, as soon as the method exits, all the information would be lost. That
         # is why, it needs to be 'deepcopied' so that this dictionary can be used outside this method.
         return deepcopy(dic)
+
+    def getNamesTrees(self):
+        files = glob('{dir}*.root'.format(dir=self.DataFolder))
+        names = [i.split('/')[-1].strip('.root') for i in files]
+        return names
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
