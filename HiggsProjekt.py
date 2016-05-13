@@ -7,6 +7,7 @@ from ROOT import TFile
 from GetData import *
 from glob import glob
 from copy import deepcopy
+from ROOT import THStack
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -29,6 +30,7 @@ class Analysis:
         self.names = self.get_names_trees()
         self.histograms = GetData(self.trees, self.names, 'mmis').histograms
         self.norm_histograms = GetData(self.trees, self.names, 'mmis').norm_histograms
+     #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
 
     # This method loads the trees from the root file located at the DataFolder
@@ -50,6 +52,11 @@ class Analysis:
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
         names = [i.split('/')[-1].strip('.root') for i in files]
         return names
+
+    def stacked_histograms(self, histograms, branchname):
+        s1 = THStack(branchname+'stack', 's1'+branchname)
+        s1.Add(histograms)
+        s1.Draw('nostack')
 
 
 # This is the main that it is called if you start the python script
