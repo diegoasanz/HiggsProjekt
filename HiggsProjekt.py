@@ -9,6 +9,7 @@ from glob import glob
 from copy import deepcopy
 from DataTree import *
 from BranchInfo import *
+from TotalBackgrounds import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -39,10 +40,12 @@ class Analysis:
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         self.branch_info = BranchInfo()
+        self.branch_names = self.branch_info.branch_names
         self.branch_numbins = self.branch_info.branch_numbins
-        self.branch_min = self.branch_info.branch_min
-        self.branch_max = self.branch_info.branch_max
+        self.branch_mins = self.branch_info.branch_min
+        self.branch_maxs = self.branch_info.branch_max
         self.background_data_trees = self.create_background_data_trees()
+        self.total_background_histograms_dict = TotalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs).total_background_histograms_dict
         self.get_data = GetData(self.trees, self.names, 'mmis')
         self.histograms = self.get_data.histograms
         self.norm_histograms = self.get_data.norm_histograms
