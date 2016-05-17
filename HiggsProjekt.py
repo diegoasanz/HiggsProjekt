@@ -7,6 +7,7 @@ from ROOT import TFile
 from GetData import *
 from glob import glob
 from copy import deepcopy
+from ROOT import THStack
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -26,8 +27,11 @@ class Analysis:
         # This calls the method 'load_trees' of the Analysis class, and the results are stored in the variable trees.
         # trees variable will have a dictionary with the tree name and the tree
         self.trees = self.load_trees()
-        self.names = self.getNamesTrees()
-        self.histograms = GetData(self.trees,self.names,'mmis').histograms
+        self.names = self.get_names_trees()
+        self.histograms = GetData(self.trees, self.names, 'mmis').histograms
+        self.norm_histograms = GetData(self.trees, self.names, 'mmis').norm_histograms
+     #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
+
 
     # This method loads the trees from the root file located at the DataFolder
     def load_trees(self):
@@ -44,14 +48,20 @@ class Analysis:
         # is why, it needs to be 'deepcopied' so that this dictionary can be used outside this method.
         return deepcopy(dic)
 
-    def getNamesTrees(self):
+    def get_names_trees(self):
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
         names = [i.split('/')[-1].strip('.root') for i in files]
         return names
 
+    def stacked_histograms(self, histograms, branchname):
+        s1 = THStack(branchname+'stack', 's1'+branchname)
+        s1.Add(histograms)
+        s1.Draw('nostack')
+
+
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
-    # print_banner is located in Utils Class found in Utils.py. This Class is for usefull utilities.
+    # print_banner is located in Utils Class found in Utils.py. This Class is for useful utilities.
     # print_banner is a nice way to print the information in terminal
     print_banner('STARTING HIGGS ANALYSIS')
     # this creates an instance (object) of the Analysis class that is defined above.
