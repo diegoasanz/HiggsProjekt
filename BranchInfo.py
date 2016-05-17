@@ -13,6 +13,43 @@ __author__ = 'Pin-Jung & Diego Alejandro'
 
 class BranchInfo:
     def __init__(self):
+        # branches names:
+        self.branch_names = []
+        self.branch_names.append('acop')
+        self.branch_names.append('acthm')
+        self.branch_names.append('btag1')
+        self.branch_names.append('btag2')
+        self.branch_names.append('ele_ene')
+        self.branch_names.append('ele_num')
+        self.branch_names.append('ele_phi')
+        self.branch_names.append('ele_the')
+        self.branch_names.append('encm')
+        self.branch_names.append('enj1')
+        self.branch_names.append('enj2')
+        self.branch_names.append('fmvis')
+        self.branch_names.append('ievt')
+        self.branch_names.append('irun')
+        self.branch_names.append('maxcthj')
+        self.branch_names.append('maxxov')
+        self.branch_names.append('mmis')
+        self.branch_names.append('muon_ene')
+        self.branch_names.append('muon_num')
+        self.branch_names.append('muon_phi')
+        self.branch_names.append('muon_the')
+        self.branch_names.append('mvis')
+        self.branch_names.append('mvissc')
+        self.branch_names.append('phj1')
+        self.branch_names.append('phj2')
+        self.branch_names.append('pho_ene')
+        self.branch_names.append('pho_num')
+        self.branch_names.append('pho_phi')
+        self.branch_names.append('pho_the')
+        self.branch_names.append('thj1')
+        self.branch_names.append('thj2')
+        self.branch_names.append('ucsdbt0')
+        self.branch_names.append('xmj1')
+        self.branch_names.append('xmj2')
+
         # minimum values
         self.branch_min = {}
         self.branch_min['acop'] = 0

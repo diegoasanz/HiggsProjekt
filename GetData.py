@@ -34,9 +34,6 @@ class GetData:
         return deepcopy(histogram)
 
     def get_normalized_historgram(self, histogram, scale):
-        print scale
-        print histogram
         histogram.Scale(scale)
         norm_histogram=histogram
-        print norm_histogram
         return deepcopy(norm_histogram)
