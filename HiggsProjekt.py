@@ -28,8 +28,9 @@ class Analysis:
         # trees variable will have a dictionary with the tree name and the tree
         self.trees = self.load_trees()
         self.names = self.get_names_trees()
-        self.histograms = GetData(self.trees, self.names, 'mmis').histograms
-        self.norm_histograms = GetData(self.trees, self.names, 'mmis').norm_histograms
+        self.get_data = GetData(self.trees, self.names, 'mmis')
+        self.histograms = self.get_data.histograms
+        self.norm_histograms = self.get_data.norm_histograms
      #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
 

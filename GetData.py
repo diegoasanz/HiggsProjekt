@@ -18,7 +18,8 @@ class GetData:
         self.max_events = {name: dic[name].GetEntries() for name in filenames}
         self.cross_section = [3.35, 16.5, 0.0333, 15600, 102, 0.094, 2.9, 0.975, 1, 0.0667]  # [8] data has no cross section
         self.num_evts = [29500, 294500, 3971, 5940000, 200000, 3972, 81786, 196000, 1, 3973]  # [8] data just need to be normalized
-        self.scale = {name: lum for name, lum in zip(filenames, (self.num_evts[i] / self.cross_section[i] for i in range (0, 10)))}  # normalized by integrated luminosity
+        self.lum = {name: lum for name, lum in zip(filenames, (self.num_evts[i] / self.cross_section[i] for i in range (0, 10)))}  # normalized by integrated luminosity
+        self.scale = {name: 176.773/self.lum[name] for name in filenames}
         self.histograms = {name: self.get_histogram_from_tree(dic[name], branchname, self.max_events[name], name) for name in filenames}
         self.norm_histograms = {name: self.get_normalized_historgram(self.histograms[name], self.scale[name]) for name in filenames}
 
@@ -33,5 +34,7 @@ class GetData:
         return deepcopy(histogram)
 
     def get_normalized_historgram(self, histogram, scale):
-        norm_histogram = histogram.Scale(1 / scale)
+        print scale
+        histogram.Scale(scale)
+        norm_histogram=histogram
         return deepcopy(norm_histogram)
