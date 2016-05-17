@@ -1,6 +1,6 @@
 # ---------------------------------------------------
 #           HIGGS PROJECT for SMATEP
-#   author: Michael Reichmann
+#   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
 from ROOT import TFile
@@ -35,6 +35,8 @@ class GetData:
 
     def get_normalized_historgram(self, histogram, scale):
         print scale
+        print histogram
         histogram.Scale(scale)
         norm_histogram=histogram
+        print norm_histogram
         return deepcopy(norm_histogram)
