@@ -145,6 +145,7 @@ class Analysis:
         c1.WaitPrimitive()
         c1.WaitPrimitive()
         c1.WaitPrimitive()
+        c1.Destructor()
 
 
 

@@ -22,12 +22,11 @@ class DataTree:
             self.number_events = -1
             self.cross_section = -1
             self.luminosity = 176.773
-            self.scaling_factor = 1
         else:
             self.number_events = num_events
             self.cross_section = cross_sections
             self.luminosity = self.number_events/self.cross_section
-            self.scaling_factor = 176.773/self.luminosity
+        self.scaling_factor = 1/self.luminosity
 
     def GetBranchHistogram(self,branchname,nbins_histo,min_histo,max_histo):
         histogram_name = branchname+'_'+self.tree_name
