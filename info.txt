@@ -1,0 +1,34 @@
+    table_name     | group_name |           verbose_name            | is_data
+-------------------+------------+-----------------------------------+---------
+ zdec_bhab         | alephz     | e+e-                              | f
+ zdec_da8950       | alephz     | data 89.5 GeV                     | t
+ zdec_da9125_small | alephz     | data 91.2 GeV                     | t
+ zdec_da9300       | alephz     | data 93.0 GeV                     | t
+ zdec_gge          | alephz     | two photon collisions (electrons) | f
+ zdec_ggh          | alephz     | two photon collisions (hadrons)   | f
+ zdec_ggha         | alephz     | two photon collisions (hadrons)   | f
+ zdec_ggm          | alephz     | two photon collisions (muons)     | f
+ zdec_ggt          | alephz     | two photon collisions (taus)      | f
+ zdec_ggv          | alephz     | two photon collisions (v?)        | f
+ zdec_hadr         | alephz     | qq                                | f
+ zdec_muon         | alephz     | mu+mu-                            | f
+ zdec_taus         | alephz     | tau+tau-                          | f
+
+ higgs_qq          | l3higgs189 | qq                                | f
+ higgs_ww          | l3higgs189 | W+W-                              | f
+ higgs_zz          | l3higgs189 | ZZ                                | f
+ higgs_zee         | l3higgs189 | Zee                               | f
+ higgs_wen         | l3higgs189 | qq e nu                           | f
+ higgs_eeqq        | l3higgs189 | two photon collisions             | f
+ higgs_data        | l3higgs189 | data                              | t
+ higgs_higgs_85    | l3higgs189 | Higgs (mh=85 GeV)                 | f
+ higgs_higgs_90    | l3higgs189 | Higgs (mh=90 GeV)                 | f
+ higgs_higgs_95    | l3higgs189 | Higgs (mh=95 GeV)                 | f
+
+ h1_new_data       | h1new      | H1 data                           | t
+ h1_new_mc_nc      | h1new      | H1 neutral current MC             | f
+ h1_new_mc_cc      | h1new      | H1 charged current MC             | f
+
+ magic_on          | magic      | Point to source                   | t
+ magic_off         | magic      | Point off source                  | t
+ magic_mc          | magic      | MC gamma events                   | f
