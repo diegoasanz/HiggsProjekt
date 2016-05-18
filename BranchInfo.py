@@ -56,20 +56,20 @@ class BranchInfo:
         self.branch_min['acthm'] = 0
         self.branch_min['btag1'] = 0
         self.branch_min['btag2'] = 0
-        self.branch_min['ele_ene'] = 1 # use something different to 0 because there may be many 0 of events without electrons
+        self.branch_min['ele_ene'] = 0
         self.branch_min['ele_num'] = 0
         self.branch_min['ele_phi'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['ele_the'] = 0
         self.branch_min['encm'] = 0
-        self.branch_min['enj1'] = 1 # use something different to 0 because there may be many 0 of events without jets
-        self.branch_min['enj2'] = 1 # use something different to 0 because there may be many 0 of events without jets
+        self.branch_min['enj1'] = 0
+        self.branch_min['enj2'] = 0
         self.branch_min['fmvis'] = 1
         self.branch_min['ievt'] = 0
         self.branch_min['irun'] = 0
         self.branch_min['maxcthj'] = 0
         self.branch_min['maxxov'] = 0
         self.branch_min['mmis'] = 0
-        self.branch_min['muon_ene'] = 1 # use something different to 0 because there may be many 0 of events without muons
+        self.branch_min['muon_ene'] = 0
         self.branch_min['muon_num'] = 0
         self.branch_min['muon_phi'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['muon_the'] = 0
@@ -77,15 +77,15 @@ class BranchInfo:
         self.branch_min['mvissc'] = 0
         self.branch_min['phj1'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['phj2'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
-        self.branch_min['pho_ene'] = 1 # use something different to 0 because there may be many 0 of events without photons
+        self.branch_min['pho_ene'] = 0
         self.branch_min['pho_num'] = 0
         self.branch_min['pho_phi'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['pho_the'] = 0
         self.branch_min['thj1'] = 0
         self.branch_min['thj2'] = 0
         self.branch_min['ucsdbt0'] = 0
-        self.branch_min['xmj1'] = 1 # use something different to 0 because there may be many 0 of events without jets
-        self.branch_min['xmj2'] = 1 # use something different to 0 because there may be many 0 of events without jets
+        self.branch_min['xmj1'] = 0 # there may be many 0 of events without jets
+        self.branch_min['xmj2'] = 0 # there may be many 0 of events without jets
         
         # maximum values
         self.branch_max = {}
