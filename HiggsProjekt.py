@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor
+from ROOT import TFile, THStack, TColor, TCanvas, TPad
 from GetData import *
 from glob import glob
 from copy import deepcopy
@@ -79,11 +79,6 @@ class Analysis:
         # is why, it needs to be 'deepcopied' so that this dictionary can be used outside this method.
         return deepcopy(dic)
 
-    def stacked_histograms(self, histograms, branchname):
-        s1 = THStack(branchname+'stack', 's1'+branchname)
-        s1.Add(histograms)
-        s1.Draw('nostack')
-
     def organize_trees(self,dic_trees,names):
         for name in names:
             if name == self.data_name:
@@ -118,6 +113,7 @@ class Analysis:
         hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
         h1 = TH1F(branch_name + '_background', branch_name + '_background', nbins, hmin, hmax)
         h1.SetLineColor(TColor.kRed)
+        h1.SetFillColor(TColor.kRed)
         # h1.sumw2() # if weighted distribution
         for name in names:
             h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min,branch_max), data_trees[name].scaling_factor)
@@ -129,7 +125,28 @@ class Analysis:
             for branch in branch_names:
                 mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
                 mc_histograms_dict[name][branch].SetLineColor(TColor.kBlue)
+                mc_histograms_dict[name][branch].SetFillColor(TColor.kBlue)
         return deepcopy(mc_histograms_dict)
+
+    def overlayMCBckgrndSignal(self, mcname, branchname):
+        self.stacked_histograms(self.total_background_histograms_dict[branchname], self.mc_histograms_dict[mcname][branchname], mcname+'_'+branchname)
+
+    def stacked_histograms(self, backgroundHisto, mcHisto, branchname):
+        c1 = TCanvas('c1', 'c1', 1)
+        s1 = THStack(branchname+'_stack', 's1_'+branchname)
+        s1.Add(backgroundHisto)
+        s1.Add(mcHisto)
+        c1.cd()
+        s1.Draw()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+        c1.WaitPrimitive()
+
+
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
