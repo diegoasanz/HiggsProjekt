@@ -15,8 +15,8 @@ from Utils import *
 class TotalBackgrounds:
     def __init__(self, names, data_trees, branches_names, branches_nbins, branches_mins, branches_maxs):
         self.total_background_histograms_dict = {}
-        for name in branches_names:
-            self.accumulateHistogram(self.total_background_histograms_dict, names, data_trees, name, branches_nbins[name], branches_mins[name], branches_maxs[name])
+        for branch in branches_names:
+            self.accumulateHistogram(self.total_background_histograms_dict, names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch])
 
     def accumulateHistogram(self, dictionary, names, data_trees, branch_name, branch_nbin, branch_min, branch_max):
         nbins = int(branch_nbin+1)
