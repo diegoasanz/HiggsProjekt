@@ -9,8 +9,6 @@ from glob import glob
 from copy import deepcopy
 from DataTree import *
 from BranchInfo import *
-from TotalBackgrounds import *
-from MonteCarloHistograms import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -51,10 +49,10 @@ class Analysis:
         self.branch_maxs = self.branch_info.branch_max
         print_banner('Totaling the histograms of the backgrounds for each branch...', '%')
         self.background_data_trees = self.create_background_data_trees()
-        self.total_background_histograms_dict = TotalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs).total_background_histograms_dict
+        self.total_background_histograms_dict = self.totalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
-        self.mc_histograms_dict = MonteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs).mc_histograms_dict
+        self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.get_data = GetData(self.trees, self.names, 'mmis')
         self.histograms = self.get_data.histograms
         self.norm_histograms = self.get_data.norm_histograms
@@ -104,6 +102,32 @@ class Analysis:
     def create_mc_data_trees(self):
         dic = {name: DataTree(self.mc_higgs_trees[name], name, self.cross_sections[name], self.num_events[name]) for name in self.mc_higgs_names}
         return deepcopy(dic)
+
+    def totalBackgrounds(self, names, data_trees, branches_names, branches_nbins, branches_mins, branches_maxs):
+        total_background_histograms_dict = {}
+        for branch in branches_names:
+            self.accumulateHistogram(total_background_histograms_dict, names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch])
+        # div_scale = len(names) # the luminosity is now div_scale bigger than what it should be
+        # for branch in branches_names:
+        #    total_background_histograms_dict[branch].Scale(float(float(1)/float(div_scale)))
+        return deepcopy(total_background_histograms_dict)
+
+    def accumulateHistogram(self, dictionary, names, data_trees, branch_name, branch_nbin, branch_min, branch_max):
+        nbins = int(branch_nbin+1)
+        hmin = branch_min - float(branch_max - branch_min) / float(2 * branch_nbin)
+        hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
+        h1 = TH1F(branch_name + '_background', branch_name + '_background', nbins, hmin, hmax)
+        # h1.sumw2() # if weighted distribution
+        for name in names:
+            h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min,branch_max), data_trees[name].scaling_factor)
+        dictionary[branch_name] = h1
+
+    def monteCarloHistograms(self, names, data_trees, branch_names, branches_nbins, branches_mins, branches_maxs):
+        mc_histograms_dict = {name: {branch: data_trees[name].GetBranchHistogram(branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch]) for branch in branch_names} for name in names}
+        for name in names:
+            for branch in branch_names:
+                mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
+        return deepcopy(mc_histograms_dict)
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
