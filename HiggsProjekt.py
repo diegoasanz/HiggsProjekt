@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack
+from ROOT import TFile, THStack, TColor
 from GetData import *
 from glob import glob
 from copy import deepcopy
@@ -117,6 +117,7 @@ class Analysis:
         hmin = branch_min - float(branch_max - branch_min) / float(2 * branch_nbin)
         hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
         h1 = TH1F(branch_name + '_background', branch_name + '_background', nbins, hmin, hmax)
+        h1.SetLineColor(TColor.kRed)
         # h1.sumw2() # if weighted distribution
         for name in names:
             h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min,branch_max), data_trees[name].scaling_factor)
@@ -127,6 +128,7 @@ class Analysis:
         for name in names:
             for branch in branch_names:
                 mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
+                mc_histograms_dict[name][branch].SetLineColor(TColor.kBlue)
         return deepcopy(mc_histograms_dict)
 
 # This is the main that it is called if you start the python script
