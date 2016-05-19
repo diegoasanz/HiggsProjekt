@@ -8,6 +8,12 @@ from glob import glob
 from copy import deepcopy
 from Utils import *
 
+class Data:
+
+    def __init__(self, tree, name, luminosity):
+        self.Tree = tree
+        self.Name = name
+        self.Luminosity = luminosity
 
 class Analysis:
     def __init__(self):
