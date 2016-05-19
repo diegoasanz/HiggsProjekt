@@ -56,6 +56,7 @@ class Analysis:
         self.get_data = GetData(self.trees, self.names, 'mmis')
         self.histograms = self.get_data.histograms
         self.norm_histograms = self.get_data.norm_histograms
+        self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
 
@@ -132,20 +133,12 @@ class Analysis:
         self.stacked_histograms(self.total_background_histograms_dict[branchname], self.mc_histograms_dict[mcname][branchname], mcname+'_'+branchname)
 
     def stacked_histograms(self, backgroundHisto, mcHisto, branchname):
-        c1 = TCanvas('c1', 'c1', 1)
+        #c1 = TCanvas('c1', 'c1', 1)
         s1 = THStack(branchname+'_stack', 's1_'+branchname)
         s1.Add(backgroundHisto)
         s1.Add(mcHisto)
-        c1.cd()
         s1.Draw()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.WaitPrimitive()
-        c1.Destructor()
+        self.stuff.append(s1)
 
 
 
