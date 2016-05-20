@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad
 from GetData import *
 from glob import glob
 from copy import deepcopy
@@ -133,11 +133,13 @@ class Analysis:
         self.stacked_histograms(self.total_background_histograms_dict[branchname], self.mc_histograms_dict[mcname][branchname], mcname+'_'+branchname)
 
     def stacked_histograms(self, backgroundHisto, mcHisto, branchname):
-        #c1 = TCanvas('c1', 'c1', 1)
+        c1 = TCanvas('c1', 'c1', 1)
+        c1.cd()
         s1 = THStack(branchname+'_stack', 's1_'+branchname)
         s1.Add(backgroundHisto)
         s1.Add(mcHisto)
         s1.Draw()
+        c1.BuildLegend()
         self.stuff.append(s1)
 
 
