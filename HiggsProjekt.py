@@ -39,17 +39,15 @@ class Analysis:
         self.DataFolder = 'l3higgs189/'
         self.ResultsDir = 'Plots/'
 
-        # dictionary of the tree name and the tree
-        self.trees = self.load_trees()
-        self.DataTree = self.get_tree()
-        self.Luminosity = self.load_luminosities()
-        self.BranchList = [br.GetName() for br in self.trees.values()[0].GetListOfBranches()]
-        self.qq = self.trees['qq']
-        self.BranchDict = self.load_branch_dict()
-        self.data = []
-        self.NEvents = 0
-        self.CrossSection = 0
-        self.Data = []
+        # trees
+        trees = self.load_trees()
+        luminosity = self.load_luminosities()
+        self.Data = Data(trees['data'], 'data', 176e-3)
+        self.Background = {name: Data(tree, name, luminosity[name]) for name, tree in trees.iteritems() if name != 'data' and not name.startswith('higgs')}
+        # self.Signal = [Data(tree, name, luminosity[name]) for name, tree in trees.iteritems() if name.startswith('higgs')]
+        self.Signal = {name: Data(tree, name, 0) for name, tree in trees.iteritems() if name.startswith('higgs')}
+
+        self.Stuff = []
 
     def load_trees(self):
         files = [TFile(f) for f in glob('{dir}*.root'.format(dir=self.DataFolder))]
