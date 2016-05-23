@@ -29,9 +29,9 @@ class PDFGenerator:
         self.signalHisto = signalHistos[branchName]
         self.backgroundHisto = backgroundsHistos[branchName]
 
-    def likelihood(self):
-        self.poisson_B = 1
-        self.poisson_SB = 1
+    def likelihood_ratio(self):
+        poisson_B = 1
+        poisson_SB = 1
         for bin in xrange(1, self.numBins+1):
             self.function.Set(self.num_points+1)
             x = self.signalHisto.GetBinCenter(bin)
@@ -41,10 +41,11 @@ class PDFGenerator:
             poisson_value_B = self.one_bin_mc(valueS, valueB, 0, valueSB)
             poisson_value_SB = self.one_bin_mc(valueS, valueB, 1, valueSB)
 
-            poisson_B = poisson_B * poisson_value_B
+            poisson_B = poisson_B * poisson_value_B  # not sure whether this is the correct way for calculating recursion?
             poisson_SB = poisson_SB * poisson_value_SB
             return poisson_B, poisson_SB
-        return
+        Q = poisson_SB / poisson_B
+        return deepcopy(Q)
 
             # poisson_value = TMath.PoissonI()
 
