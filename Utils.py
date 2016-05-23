@@ -50,7 +50,7 @@ def save_plots(savename, save_dir, file_type=None,  sub_dir=None, canvas=None):
         except Exception as inst:
             print_banner('ERROR in save plots! {inst}'.format(inst=inst))
 
-def draw_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2000, y=2000, l=None):
+def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2000, y=2000, l=None):
         h = histo
         gROOT.SetBatch(1) if not show else do_nothing()
         c = TCanvas('c_{0}'.format(h.GetName()), h.GetTitle().split(';')[0], x, y)
