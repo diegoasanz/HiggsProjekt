@@ -2,6 +2,12 @@
 
 from ROOT import gROOT, TCanvas
 import ROOT
+from datetime import datetime
+from termcolor import colored
+
+def log_warning(msg):
+    t = datetime.now().strftime('%H:%M:%S')
+    print '{head} {t} --> {msg}'.format(t=t, msg=msg, head=colored('WARNING:', 'red'))
 
 def print_banner(msg, symbol='='):
     print '\n{delim}\n{msg}\n{delim}\n'.format(delim=len(str(msg)) * symbol, msg=msg)
