@@ -4,7 +4,6 @@
 # ---------------------------------------------------
 
 from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad
-from GetData import *
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -13,6 +12,7 @@ from BranchInfo import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
+
 
 class Analysis:
     # this method is the initialization of the Analysis class. This is the constructor of the Analysis class.
@@ -38,7 +38,7 @@ class Analysis:
         self.mc_higgs_trees = {}
         self.mc_higgs_names = []
         print_banner('Organizing trees on background, data, and MC...', '%')
-        self.organize_trees(self.trees,self.names)
+        self.organize_trees(self.trees, self.names)
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         print_banner('Loading branches information and settings...', '%')
@@ -53,12 +53,11 @@ class Analysis:
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        self.get_data = GetData(self.trees, self.names, 'mmis')
-        self.histograms = self.get_data.histograms
-        self.norm_histograms = self.get_data.norm_histograms
+        # self.get_data = GetData(self.trees, self.names, 'mmis')
+        # self.histograms = self.get_data.histograms
+        # self.norm_histograms = self.get_data.norm_histograms
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
-
 
     def get_names_trees(self):
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
@@ -80,7 +79,7 @@ class Analysis:
         # is why, it needs to be 'deepcopied' so that this dictionary can be used outside this method.
         return deepcopy(dic)
 
-    def organize_trees(self,dic_trees,names):
+    def organize_trees(self, dic_trees, names):
         for name in names:
             if name == self.data_name:
                 self.data_tree = dic_trees[name]
@@ -103,21 +102,19 @@ class Analysis:
         total_background_histograms_dict = {}
         for branch in branches_names:
             self.accumulateHistogram(total_background_histograms_dict, names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch])
-        # div_scale = len(names) # the luminosity is now div_scale bigger than what it should be
-        # for branch in branches_names:
-        #    total_background_histograms_dict[branch].Scale(float(float(1)/float(div_scale)))
         return deepcopy(total_background_histograms_dict)
 
     def accumulateHistogram(self, dictionary, names, data_trees, branch_name, branch_nbin, branch_min, branch_max):
-        nbins = int(branch_nbin+1)
+        nbins = int(branch_nbin + 1)
         hmin = branch_min - float(branch_max - branch_min) / float(2 * branch_nbin)
         hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
-        h1 = TH1F(branch_name + '_background', branch_name + '_background', nbins, hmin, hmax)
-        h1.SetLineColor(TColor.kRed)
-        h1.SetFillColor(TColor.kRed)
+        histo_name = branch_name + '_background'
+        h1 = TH1F(histo_name, histo_name, nbins, hmin, hmax)
         # h1.sumw2() # if weighted distribution
         for name in names:
-            h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min,branch_max), data_trees[name].scaling_factor)
+            h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min, branch_max), data_trees[name].scaling_factor)
+        h1.SetLineColor(TColor.kRed)
+        h1.SetFillColor(TColor.kRed)
         dictionary[branch_name] = h1
 
     def monteCarloHistograms(self, names, data_trees, branch_names, branches_nbins, branches_mins, branches_maxs):
@@ -130,18 +127,17 @@ class Analysis:
         return deepcopy(mc_histograms_dict)
 
     def overlayMCBckgrndSignal(self, mcname, branchname):
-        self.stacked_histograms(self.total_background_histograms_dict[branchname], self.mc_histograms_dict[mcname][branchname], mcname+'_'+branchname)
+        self.stacked_histograms(self.total_background_histograms_dict[branchname],self.mc_histograms_dict[mcname][branchname], mcname + '_' + branchname)
 
     def stacked_histograms(self, backgroundHisto, mcHisto, branchname):
         c1 = TCanvas('c1', 'c1', 1)
         c1.cd()
-        s1 = THStack(branchname+'_stack', 's1_'+branchname)
+        s1 = THStack(branchname + '_stack', 's1_' + branchname)
         s1.Add(backgroundHisto)
         s1.Add(mcHisto)
         s1.Draw()
         c1.BuildLegend()
         self.stuff.append(s1)
-
 
 
 # This is the main that it is called if you start the python script

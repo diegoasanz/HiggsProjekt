@@ -3,8 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, TH1F, TGraphErrors, TMath
-from GetData import *
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, TH1F, TGraphErrors, TMath, TRandom3
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -13,6 +12,8 @@ from BranchInfo import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
+
+random = TRandom3(123654)
 
 class PDFGenerator:
     def __init__(self, branchName, signalHistos, backgroundsHistos):
@@ -27,6 +28,13 @@ class PDFGenerator:
         signalHisto = signalHistos[branchName]
         backgroundHisto = backgroundsHistos[branchName]
         for bin in xrange(1,numBins):
+
             self.function.Set(self.num_points+1)
-            x = signalHisto.
+            x = signalHisto.GetBinCenter(bin)
+            valueS = signalHisto.GetBinContent(bin)
+            valueB = backgroundHisto.GetBinContent(bin)
+            valueSB = valueS + valueB
+
             poisson_value = TMath.PoissonI()
+
+    def one_bin_mc(self, signal, background):
