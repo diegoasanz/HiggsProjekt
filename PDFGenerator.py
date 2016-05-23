@@ -40,7 +40,6 @@ class PDFGenerator:
             valueSB = valueS + valueB
             poisson_value_B = self.one_bin_mc(valueS, valueB, 0, valueSB)
             poisson_value_SB = self.one_bin_mc(valueS, valueB, 1, valueSB)
-
             poisson_B = poisson_B * poisson_value_B  # not sure whether this is the correct way for calculating recursion?
             poisson_SB = poisson_SB * poisson_value_SB
             return poisson_B, poisson_SB
