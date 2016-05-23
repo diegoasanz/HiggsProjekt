@@ -49,6 +49,7 @@ class BranchInfo:
         self.branch_names.append('ucsdbt0')
         self.branch_names.append('xmj1')
         self.branch_names.append('xmj2')
+        self.branch_names.append('invmassH')
 
         # minimum values
         self.branch_min = {}
@@ -68,13 +69,13 @@ class BranchInfo:
         self.branch_min['irun'] = 0
         self.branch_min['maxcthj'] = 0
         self.branch_min['maxxov'] = 0
-        self.branch_min['mmis'] = 0
+        self.branch_min['mmis'] = 40
         self.branch_min['muon_ene'] = 0
         self.branch_min['muon_num'] = 0
         self.branch_min['muon_phi'] = 2*TMath.Pi()/100 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['muon_the'] = TMath.Pi()/100
-        self.branch_min['mvis'] = 0
-        self.branch_min['mvissc'] = 0
+        self.branch_min['mvis'] = 40
+        self.branch_min['mvissc'] = 50
         self.branch_min['phj1'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['phj2'] = 0 # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_min['pho_ene'] = 0
@@ -84,8 +85,9 @@ class BranchInfo:
         self.branch_min['thj1'] = 0
         self.branch_min['thj2'] = 0
         self.branch_min['ucsdbt0'] = 0
-        self.branch_min['xmj1'] = 0 # there may be many 0 of events without jets
-        self.branch_min['xmj2'] = 0 # there may be many 0 of events without jets
+        self.branch_min['xmj1'] = 1 # there may be many 0 of events without jets
+        self.branch_min['xmj2'] = 1 # there may be many 0 of events without jets
+        self.branch_min['invmassH'] = 1
         
         # maximum values
         self.branch_max = {}
@@ -111,7 +113,7 @@ class BranchInfo:
         self.branch_max['muon_phi'] = 2*TMath.Pi() # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_max['muon_the'] = TMath.Pi()
         self.branch_max['mvis'] = 150
-        self.branch_max['mvissc'] = 150
+        self.branch_max['mvissc'] = 100
         self.branch_max['phj1'] = 2*TMath.Pi() # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_max['phj2'] = 2*TMath.Pi() # check if it starts from 0 to 2 Pi or if it is from -Pi to Pi
         self.branch_max['pho_ene'] = 1000
@@ -121,8 +123,9 @@ class BranchInfo:
         self.branch_max['thj1'] = TMath.Pi()
         self.branch_max['thj2'] = TMath.Pi()
         self.branch_max['ucsdbt0'] = 16
-        self.branch_max['xmj1'] = 90
-        self.branch_max['xmj2'] = 150
+        self.branch_max['xmj1'] = 71
+        self.branch_max['xmj2'] = 51
+        self.branch_max['invmassH'] = 151
 
         # number of bins
         self.branch_numbins = {}
@@ -142,13 +145,13 @@ class BranchInfo:
         self.branch_numbins['irun'] = 100
         self.branch_numbins['maxcthj'] = 100
         self.branch_numbins['maxxov'] = 100
-        self.branch_numbins['mmis'] = 150
+        self.branch_numbins['mmis'] = 100
         self.branch_numbins['muon_ene'] = 100
         self.branch_numbins['muon_num'] = 3
         self.branch_numbins['muon_phi'] = 100
         self.branch_numbins['muon_the'] = 100
-        self.branch_numbins['mvis'] = 150
-        self.branch_numbins['mvissc'] = 150
+        self.branch_numbins['mvis'] = 100
+        self.branch_numbins['mvissc'] = 50
         self.branch_numbins['phj1'] = 100
         self.branch_numbins['phj2'] = 100
         self.branch_numbins['pho_ene'] = 100
@@ -158,5 +161,6 @@ class BranchInfo:
         self.branch_numbins['thj1'] = 100
         self.branch_numbins['thj2'] = 100
         self.branch_numbins['ucsdbt0'] = 16
-        self.branch_numbins['xmj1'] = 150
-        self.branch_numbins['xmj2'] = 150
+        self.branch_numbins['xmj1'] = 70
+        self.branch_numbins['xmj2'] = 50
+        self.branch_numbins['invmassH'] = 150
