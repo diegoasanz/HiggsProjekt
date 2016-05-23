@@ -30,8 +30,8 @@ class PDFGenerator:
         self.backgroundHisto = backgroundsHistos[branchName]
 
     def likelihood(self):
-        poisson_B = 1
-        poisson_SB = 1
+        self.poisson_B = 1
+        self.poisson_SB = 1
         for bin in xrange(1, self.numBins+1):
             self.function.Set(self.num_points+1)
             x = self.signalHisto.GetBinCenter(bin)
@@ -44,6 +44,7 @@ class PDFGenerator:
             poisson_B = poisson_B * poisson_value_B
             poisson_SB = poisson_SB * poisson_value_SB
             return poisson_B, poisson_SB
+        return
 
             # poisson_value = TMath.PoissonI()
 
