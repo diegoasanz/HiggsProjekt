@@ -83,3 +83,5 @@ def get_color():
 
 def do_nothing():
     pass
+
+BranchDict = {'mvis': 'Visible Mass', 'mmis': 'Missing Mass'}
