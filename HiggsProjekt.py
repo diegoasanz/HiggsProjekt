@@ -9,6 +9,30 @@ from copy import deepcopy
 from Utils import *
 
 
+class Data:
+
+    def __init__(self, tree, name, lum):
+        self.Tree = tree
+        self.Name = name
+        self.Luminosity = lum
+
+        self.Branches = [br.GetName() for br in self.Tree.GetListOfBranches()]
+
+        self.Histos = {}
+
+    def get_histo(self, branch='mvis', scaled=False, full_lum=1):
+        if branch in self.Histos:
+            return self.Histos[branch]
+        assert branch in self.Branches, 'There is no branch {0} in the tree!'.format(branch)
+        typ = BranchDict[branch] if branch in BranchDict else branch
+        h = TH1F(branch, '{typ} of {tree}'.format(tree=self.Name, typ=typ), 28, 0, 140)
+        self.Tree.Draw('{typ}>>{typ}'.format(typ=branch), '{typ}>0'.format(typ=branch), 'goff')
+        format_histo(h, x_tit='Mass [GeV]', y_tit='Number of Entries', y_off=1.5)
+        h.Scale(self.Luminosity / full_lum) if scaled else do_nothing()
+        self.Histos[branch] = h
+        return h
+
+
 class Analysis:
     def __init__(self):
 
