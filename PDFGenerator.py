@@ -8,6 +8,7 @@ from glob import glob
 from copy import deepcopy
 from DataTree import *
 from BranchInfo import *
+from math import factorial, exp
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -25,16 +26,27 @@ class PDFGenerator:
         self.functionSB = TGraphErrors()
         self.functionB = TGraphErrors()
         self.num_points = int(0)
-        signalHisto = signalHistos[branchName]
-        backgroundHisto = backgroundsHistos[branchName]
-        for bin in xrange(1,numBins):
+        self.signalHisto = signalHistos[branchName]
+        self.backgroundHisto = backgroundsHistos[branchName]
 
+    def likelihood(self):
+        poisson_B = 1
+        poisson_SB = 1
+        for bin in xrange(1, self.numBins+1):
             self.function.Set(self.num_points+1)
-            x = signalHisto.GetBinCenter(bin)
-            valueS = signalHisto.GetBinContent(bin)
-            valueB = backgroundHisto.GetBinContent(bin)
+            x = self.signalHisto.GetBinCenter(bin)
+            valueS = self.signalHisto.GetBinContent(bin)
+            valueB = self.backgroundHisto.GetBinContent(bin)
             valueSB = valueS + valueB
+            poisson_value_B = self.one_bin_mc(valueS, valueB, 0, valueSB)
+            poisson_value_SB = self.one_bin_mc(valueS, valueB, 1, valueSB)
 
-            poisson_value = TMath.PoissonI()
+            poisson_B = poisson_B * poisson_value_B
+            poisson_SB = poisson_SB * poisson_value_SB
+            return poisson_B, poisson_SB
 
-    def one_bin_mc(self, signal, background):
+            # poisson_value = TMath.PoissonI()
+
+    def one_bin_mc(self, signal, background, mu, n):
+        MC = (mu * signal + background) ** n / factorial(n) * exp(- mu * signal - background)
+        return deepcopy(MC)
