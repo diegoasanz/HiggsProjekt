@@ -3,7 +3,7 @@
 #   author: Michael Reichmann
 # ---------------------------------------------------
 
-from ROOT import TFile, TH1F, TCanvas, THStack, TLegend
+from ROOT import TFile, TH1F, THStack, TLegend
 from glob import glob
 from copy import deepcopy
 from Utils import *
@@ -60,32 +60,55 @@ class Analysis:
         lum = {key: val[0] / val[1] for key, val in dic.iteritems()}
         return lum
 
-    def get_tree(self, tree='data'):
-        assert tree in self.trees
-        return self.trees[tree]
+    def draw_data(self, branch='mvis', show=True):
+        h = self.Data.get_histo(branch)
+        h.SetFillColor(393)
+        self.Stuff.append(save_histo(h, 'Data{0}'.format(branch.title()), show, self.ResultsDir))
+        return h
 
-    def draw_histo(self):
-        pass
+    def draw_signal(self, sig='85', branch='mvis', show=True):
+        name = 'higgs_{sig}'.format(sig=sig)
+        if not name in self.Signal:
+            log_warning('The signal "{sig}" does not exist!'.format(sig=sig))
+            return
+        h = self.Signal[name].get_histo(branch)
+        h.SetFillColor(625)
+        self.Stuff.append(save_histo(h, 'Signal{0}'.format(branch.title()), show, self.ResultsDir, lm=.12))
+        return h
 
-    def draw_mass(self, tree_name, branch, show=True):
-        assert tree_name in self.trees.keys(), 'There is no tree with name: {0}!'.format(tree_name)
-        tree = self.trees[tree_name]
-        assert branch in self.BranchList, 'There is no branch {0} in the tree!'.format(branch)
-        h = TH1F(branch, '{typ} of {tree}'.format(tree=tree_name, typ=self.BranchDict[branch]), 70, 0, 140)
-        tree.Draw('{typ}>>{typ}'.format(typ=branch), '{typ}>0'.format(typ=branch), 'goff')
-        format_histo(h, x_tit='mass [GeV]', y_tit='entries')
-        save_name = '{typ}_{nam}'.format(typ=self.BranchDict[branch].replace(' ', ''), nam=tree_name)
-        self.Data.append(draw_histo(h, save_name, show, self.ResultsDir))
+    def draw_bkg(self, bkg='qq', branch='mvis', show=True):
+        if not bkg in self.Background:
+            log_warning('The background "{sig}" does not exist!'.format(sig=bkg))
+            return
+        h = self.Background[bkg].get_histo(branch)
+        h.SetFillColor(425)
+        self.Stuff.append(save_histo(h, 'Background{0}'.format(branch.title()), show, self.ResultsDir, lm=.12))
+        return h
 
-    def draw_missing_mass(self, name='data', show=True):
-        self.draw_mass(tree_name=name, branch='mmis', show=show)
+    def draw_full_bkg(self, branch='mvis', show=True):
+        full_lum = sum([bkg.Luminosity for bkg in self.Background.itervalues()])
+        histos = [bkg.get_histo(branch, scaled=True, full_lum=full_lum) for bkg in self.Background.itervalues()]
+        h_st = THStack('bkg', 'Background {nam}'.format(nam=branch))
+        legend = TLegend(.7, .7, .9, .9)
+        bkg = TH1F('h_bkg', 'Full Background', 28, 0, 140)
+        for h in histos:
+            h.SetLineColor(get_color())
+            h.SetLineWidth(2)
+            legend.AddEntry(h,h.GetTitle(), 'l')
+            h_st.Add(h)
+            bkg.Add(h)
+        format_histo(bkg, x_tit='Mass [GeV]', y_tit='Number of Entries', fill_color=425)
+        self.Stuff.append(save_histo(h_st, 'FullBkg', show, self.ResultsDir, l=legend))
+        return bkg
 
-    def draw_visible_mass(self, name='data', show=True):
-        self.draw_mass(branch='mvis', tree_name=name, show=show)
+    def draw_mc(self, branch='mvis', show=True, sig='85'):
+        sig = self.draw_signal(sig, branch, False)
+        bkg = self.draw_full_bkg(branch, False)
+        h_st = THStack('mc', 'Signal and Background {nam}'.format(nam=branch))
+        for h in [sig, bkg]:
+            h_st.Add(h)
+        self.Stuff.append(save_histo(h_st, 'MC', show, self.ResultsDir, draw_opt='nostack'))
 
-    def show_treenames(self):
-        for key in self.trees.iterkeys():
-            print key
 
     def print_all_branchvalues(self, entry=0, name='qq'):
         tree = self.get_tree(name)
@@ -95,14 +118,11 @@ class Analysis:
 
     @staticmethod
     def load_branch_dict():
-        dic = {}
-        dic['mvis'] = 'Visible Mass'
-        dic['mmis'] = 'Missing Mass'
+        BranchDict = {'mvis': 'Visible Mass', 'mmis': 'Missing Mass'}
         return dic
 
     def draw_bgk(self, branch='mvis'):
         h_st = THStack('bkg', 'Background {nam}'.format(nam=branch))
-        bkg_trees = {name: tree for name, tree in self.trees.iteritems() if name != 'data' and not name.startswith('higgs')}
         legend = TLegend(.7, .7, .9, .9)
         L = sum(self.Luminosity.values())
         for name, tree in bkg_trees.iteritems():
@@ -113,7 +133,7 @@ class Analysis:
             h.SetLineWidth(2)
             legend.AddEntry(h,h.GetTitle(), 'l')
             h_st.Add(h)
-        self.Data.append(draw_histo(h_st, 'bla', True, self.ResultsDir, l=legend))
+        self.Data.append(save_histo(h_st, 'bla', True, self.ResultsDir, l=legend))
 
 
 
