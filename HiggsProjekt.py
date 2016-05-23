@@ -112,7 +112,9 @@ class Analysis:
         h1 = TH1F(histo_name, histo_name, nbins, hmin, hmax)
         # h1.sumw2() # if weighted distribution
         for name in names:
-            h1.Add(data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min, branch_max), data_trees[name].scaling_factor)
+            h2 = data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min, branch_max)
+            scale = data_trees[name].scaling_factor
+            h1.Add(h2, scale)
         h1.SetLineColor(TColor.kRed)
         h1.SetFillColor(TColor.kRed)
         dictionary[branch_name] = h1
