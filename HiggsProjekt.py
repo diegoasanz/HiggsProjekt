@@ -9,6 +9,12 @@ from copy import deepcopy
 from numpy import log
 from Utils import *
 
+class Data:
+
+    def __init__(self, tree, name, luminosity):
+        self.Tree = tree
+        self.Name = name
+        self.Luminosity = luminosity
 
 class Data:
 
