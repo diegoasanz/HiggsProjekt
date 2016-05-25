@@ -44,10 +44,10 @@ class Analysis:
         # trees
         trees = self.load_trees()
         luminosity = self.load_luminosities()
-        self.Data = Data(trees['data'], 'data', 176e-3)
+        self.Data = Data(trees['data'], 'data', 176.773)
         self.Background = {name: Data(tree, name, luminosity[name]) for name, tree in trees.iteritems() if name != 'data' and not name.startswith('higgs')}
         # self.Signal = [Data(tree, name, luminosity[name]) for name, tree in trees.iteritems() if name.startswith('higgs')]
-        self.Signal = {name: Data(tree, name, 0) for name, tree in trees.iteritems() if name.startswith('higgs')}
+        self.Signal = {name: Data(tree, name, luminosity[name]) for name, tree in trees.iteritems() if name.startswith('higgs')}
 
         self.Stuff = []
 
@@ -57,29 +57,31 @@ class Analysis:
         dic = {f.GetName().split('/')[-1].strip('.root').strip('higgs').strip('_'): t for f, t in zip(files, trees)}
         return deepcopy(dic)
 
-    def load_luminosities(self):
-        dic = {'qq': [2e5, 102], 'zz': [196e3, .975], 'ww': [2945e2, 3.35], 'eeqq': [594e4, 15600], 'zee': [295e2, 3.35], 'wen': [81786, 2.9]}
+    @staticmethod
+    def load_luminosities():
+        dic = {'qq': [2e5, 102], 'zz': [196e3, .975], 'ww': [2945e2, 3.35], 'eeqq': [594e4, 15600], 'zee': [295e2, 3.35], 'wen': [81786, 2.9], 'higgs_85': [3972, .094], 'higgs_90': [3973, .0667],
+               'higgs_95': [3973, .0333]}
         lum = {key: val[0] / val[1] for key, val in dic.iteritems()}
         return lum
 
-    def draw_data(self, branch='mvis', show=True):
-        h = self.Data.get_histo(branch)
-        h.SetFillColor(393)
+    def draw_data(self, branch='mvis', show=True, scaled=True):
+        h = self.Data.get_histo(branch, scaled=scaled)
+        h.SetFillColor(425)
         self.Stuff.append(save_histo(h, 'Data{0}'.format(branch.title()), show, self.ResultsDir))
         return h
 
     def draw_signal(self, sig='85', branch='mvis', show=True):
         name = 'higgs_{sig}'.format(sig=sig)
-        if not name in self.Signal:
+        if name not in self.Signal:
             log_warning('The signal "{sig}" does not exist!'.format(sig=sig))
             return
-        h = self.Signal[name].get_histo(branch)
+        h = self.Signal[name].get_histo(branch, scaled=True)
         h.SetFillColor(625)
         self.Stuff.append(save_histo(h, 'Signal{0}'.format(branch.title()), show, self.ResultsDir, lm=.12))
         return h
 
     def draw_bkg(self, bkg='qq', branch='mvis', show=True):
-        if not bkg in self.Background:
+        if bkg not in self.Background:
             log_warning('The background "{sig}" does not exist!'.format(sig=bkg))
             return
         h = self.Background[bkg].get_histo(branch)
@@ -88,18 +90,17 @@ class Analysis:
         return h
 
     def draw_full_bkg(self, branch='mvis', show=True):
-        full_lum = sum([bkg.Luminosity for bkg in self.Background.itervalues()])
-        histos = [bkg.get_histo(branch, scaled=True, full_lum=full_lum) for bkg in self.Background.itervalues()]
+        histos = [bkg.get_histo(branch, scaled=True, fac=1000) for bkg in self.Background.itervalues()]
         h_st = THStack('bkg', 'Background {nam}'.format(nam=branch))
         legend = TLegend(.7, .7, .9, .9)
         bkg = TH1F('h_bkg', 'Full Background', 28, 0, 140)
         for h in histos:
             h.SetLineColor(get_color())
             h.SetLineWidth(2)
-            legend.AddEntry(h,h.GetTitle(), 'l')
+            legend.AddEntry(h, h.GetTitle(), 'l')
             h_st.Add(h)
             bkg.Add(h)
-        format_histo(bkg, x_tit='Mass [GeV]', y_tit='Number of Entries', fill_color=425)
+        format_histo(bkg, x_tit='Mass [GeV]', y_tit='Number of Entries', fill_color=393)  # 425
         self.Stuff.append(save_histo(h_st, 'FullBkg', show, self.ResultsDir, l=legend))
         return bkg
 
