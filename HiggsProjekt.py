@@ -21,16 +21,16 @@ class Data:
 
         self.Histos = {}
 
-    def get_histo(self, branch='mvis', scaled=False, fac=1000):
+    def get_histo(self, branch='mvis', scaled=False):
         name = '{br}_{sc}scaled'.format(br=branch, sc='' if scaled else 'un')
         if name in self.Histos:
             return self.Histos[name]
         assert branch in self.Branches, 'There is no branch {0} in the tree!'.format(branch)
         typ = BranchDict[branch] if branch in BranchDict else branch
-        h = TH1F(branch, '{typ} of {tree}'.format(tree=self.Name, typ=typ), 28, 0, 140)
-        self.Tree.Draw('{typ}>>{typ}'.format(typ=branch), '{typ}>0'.format(typ=branch), 'goff')
+        h = TH1F(name, '{typ} of {tree}'.format(tree=self.Name, typ=typ), 28, 0, 140)
+        self.Tree.Draw('{br}>>{typ}'.format(br=branch, typ=name), '{br}>0'.format(br=branch), 'goff')
         format_histo(h, x_tit='Mass [GeV]', y_tit='Number of Entries', y_off=1.5)
-        h.Scale(self.Luminosity / full_lum) if scaled else do_nothing()
+        h.Scale(176.773 / self.Luminosity) if scaled else do_nothing()
         self.Histos[branch] = h
         return h
 
