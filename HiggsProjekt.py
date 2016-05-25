@@ -141,6 +141,7 @@ class Analysis:
         s1.Add(mcHisto)
         s1.Draw()
         c1.BuildLegend()
+        c1.SetLogy()
         self.stuff.append(s1)
 
 
