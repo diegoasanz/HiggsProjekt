@@ -6,6 +6,7 @@
 from ROOT import TFile, TH1F, THStack, TLegend
 from glob import glob
 from copy import deepcopy
+from numpy import log
 from Utils import *
 
 
@@ -20,9 +21,10 @@ class Data:
 
         self.Histos = {}
 
-    def get_histo(self, branch='mvis', scaled=False, full_lum=1):
-        if branch in self.Histos:
-            return self.Histos[branch]
+    def get_histo(self, branch='mvis', scaled=False, fac=1000):
+        name = '{br}_{sc}scaled'.format(br=branch, sc='' if scaled else 'un')
+        if name in self.Histos:
+            return self.Histos[name]
         assert branch in self.Branches, 'There is no branch {0} in the tree!'.format(branch)
         typ = BranchDict[branch] if branch in BranchDict else branch
         h = TH1F(branch, '{typ} of {tree}'.format(tree=self.Name, typ=typ), 28, 0, 140)
