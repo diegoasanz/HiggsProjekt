@@ -112,32 +112,19 @@ class Analysis:
             h_st.Add(h)
         self.Stuff.append(save_histo(h_st, 'MC', show, self.ResultsDir, draw_opt='nostack'))
 
-
-    def print_all_branchvalues(self, entry=0, name='qq'):
-        tree = self.get_tree(name)
-        tree.GetEntry(entry)
-        for branch in self.BranchList:
-            print branch, tree.GetBranch(branch).GetLeaf(branch).GetValue()
-
-    @staticmethod
-    def load_branch_dict():
-        BranchDict = {'mvis': 'Visible Mass', 'mmis': 'Missing Mass'}
-        return dic
-
-    def draw_bgk(self, branch='mvis'):
-        h_st = THStack('bkg', 'Background {nam}'.format(nam=branch))
-        legend = TLegend(.7, .7, .9, .9)
-        L = sum(self.Luminosity.values())
-        for name, tree in bkg_trees.iteritems():
-            h = TH1F(branch, '{typ} of {tree}'.format(tree=name, typ=self.BranchDict[branch]), 70, 1, 140)
-            tree.Draw('{br}>>{br}'.format(br=branch), '', 'goff')
-            h.Scale(self.Luminosity[name] / L)
-            h.SetLineColor(get_color())
-            h.SetLineWidth(2)
-            legend.AddEntry(h,h.GetTitle(), 'l')
-            h_st.Add(h)
-        self.Data.append(save_histo(h_st, 'bla', True, self.ResultsDir, l=legend))
-
+    def draw_lb(self):
+        gr = make_tgrapherrors('gr_ll', 'Log Likelihood')
+        h_bkg = self.draw_full_bkg(show=False)
+        h_data = self.draw_data(show=False)
+        bk = h_bkg.GetBinContent(h_bkg.FindBin(85))
+        n = h_data.GetBinContent(h_bkg.FindBin(85))
+        ll = 2 * sk
+        for ibin in xrange(h_sig.GetNbinsX()):
+            sj = h_sig.GetBinContent(ibin)
+            bj = h_bkg.GetBinContent(ibin)
+            if not (bj and sj):
+                ll += log(1 + sk * sj / (bk * bj))
+        print ll
 
 
 __author__ = 'micha'
