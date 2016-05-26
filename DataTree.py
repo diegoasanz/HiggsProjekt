@@ -3,11 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-<<<<<<< HEAD
-from ROOT import TFile, AddressOf, TTree, TH1F, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot
-=======
 from ROOT import TFile, AddressOf, TTree, TH1F, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kFALSE, kTRUE
->>>>>>> master
 from glob import glob
 from copy import deepcopy
 from BranchInfo import *
