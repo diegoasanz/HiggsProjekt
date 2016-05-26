@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, AddressOf, TTree, TH1F
+from ROOT import TFile, AddressOf, TTree, TH1F, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot
 from glob import glob
 from copy import deepcopy
 from BranchInfo import *
@@ -34,6 +34,7 @@ class DataTree:
     def GetBranchHistogram(self, branchname, nbins_histo, min_histo, max_histo):
         histogram_name = branchname + '_' + self.tree_name
         histogram = TH1F(histogram_name, histogram_name, int(nbins_histo + 1), float(min_histo - float(max_histo - min_histo) / float(2 * nbins_histo)), float(max_histo + float(max_histo - min_histo) / float(2 * nbins_histo)))
+        histogram.SetBinErrorOption(TH1F.kPoisson)
         self.tree.Draw('{branch}>>{histo}'.format(branch=branchname, histo=histogram_name), '', 'goff')
         return deepcopy(histogram)
 

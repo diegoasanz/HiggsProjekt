@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -110,6 +110,7 @@ class Analysis:
         hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
         histo_name = branch_name + '_background'
         h1 = TH1F(histo_name, histo_name, nbins, hmin, hmax)
+        h1.SetBinErrorOption(TH1F.kPoisson)
         # h1.sumw2() # if weighted distribution
         for name in names:
             h2 = data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min, branch_max)
@@ -126,6 +127,7 @@ class Analysis:
                 mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
                 mc_histograms_dict[name][branch].SetLineColor(TColor.kBlue)
                 mc_histograms_dict[name][branch].SetFillColor(TColor.kBlue)
+                mc_histograms_dict[name][branch].SetBinErrorOption(TH1F.kPoisson)
         return deepcopy(mc_histograms_dict)
 
     def overlayMCBckgrndSignal(self, mcname, branchname):
@@ -139,6 +141,7 @@ class Analysis:
         s1.Add(mcHisto)
         s1.Draw()
         c1.BuildLegend()
+        c1.SetLogy()
         self.stuff.append(s1)
 
 
