@@ -78,3 +78,7 @@ class PDFGenerator:
     #     trial_list = []
     #     for trial in xrange(0, num_trials):
     #         q = self.log_likelihood_ratio(TMath.PoissonI(mean))
+    def generate_trial(self, num_trials, mean):
+        trial_list = []
+        for trial in xrange(0, num_trials):
+            q = self.log_likelihood_ratio(TMath.PoissonI(mean))
