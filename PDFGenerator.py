@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, TH1F, TGraphErrors, TMath, TRandom3
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, TH1F, TGraphErrors, TMath, TRandom3, Math
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -34,7 +34,7 @@ class PDFGenerator:
         mean = histo.GetBinContent()
         maxK = mean + 4 * mean
         ks = [k for k in xrange(maxK)]
-        cdf = {k: TMath.poisson_cdf(k, mean) for k in ks}
+        cdf = {k: Math.poisson_cdf(k, mean) for k in ks}
         return [deepcopy(cdf) , ks]
 
     def get_k(self, cdf, rnd, ks):
