@@ -26,16 +26,14 @@ class PDFGenerator:
         self.num_points = int(0)
         self.sig_bkg = sig_bkg_histos[branchName]
         self.bkg = bkg_histos[branchName]
-        self.functionSB = [TGraphErrors(self.numBins, self.sig_bkg.GetBinCenter(bin), self.get_k(self.cdf_generator(self.sig_bkg)[0], random, self.cdf_generator(self.sig_bkg)[1]), self.widthBin, self.sig_bkg.SetBinErrorOption(TH1F.kPoisson)) for bin in xrange(1, self.numBins+1,1)]
-        self.functionB = [TGraphErrors(self.numBins, self.bkg.GetBinCenter(bin), self.get_k(self.cdf_generator(self.bkg)[0], random, self.cdf_generator(self.bkg)[1]), self.widthBin, self.sig_bkg.SetBinErrorOption(TH1F.kPoisson)) for bin in xrange(1, self.numBins+1,1)]
-
-
+        self.functionSB = {binN: TGraphErrors(self.numBins, self.sig_bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.sig_bkg)[0], random, self.cdf_generator(self.sig_bkg)[1]), self.widthBin, self.sig_bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
+        self.functionB = {binN: TGraphErrors(self.numBins, self.bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.bkg)[0], random, self.cdf_generator(self.bkg)[1]), self.widthBin, self.bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
 
 
     def cdf_generator(self, histo):
         mean = histo.GetBinContent()
-        max = mean + 4 * mean
-        ks = [k for k in xrange(0, max, 1)]
+        maxK = mean + 4 * mean
+        ks = [k for k in xrange(maxK)]
         cdf = {k: TMath.poisson_cdf(k, mean) for k in ks}
         return [deepcopy(cdf) , ks]
 
