@@ -49,7 +49,7 @@ class BranchInfo:
         self.branch_names.append('ucsdbt0')
         self.branch_names.append('xmj1')
         self.branch_names.append('xmj2')
-        self.branch_names.append('invmassH')
+        # self.branch_names.append('invmassH')
 
         # minimum values
         self.branch_min = {}
@@ -87,8 +87,8 @@ class BranchInfo:
         self.branch_min['ucsdbt0'] = 0
         self.branch_min['xmj1'] = 0 # there may be many 0 of events without jets
         self.branch_min['xmj2'] = 0 # there may be many 0 of events without jets
-        self.branch_min['invmassH'] = 10
-        
+        # self.branch_min['invmassH'] = 10
+
         # maximum values
         self.branch_max = {}
         self.branch_max['acop'] = TMath.Pi()
@@ -125,7 +125,7 @@ class BranchInfo:
         self.branch_max['ucsdbt0'] = 20
         self.branch_max['xmj1'] = 80
         self.branch_max['xmj2'] = 60
-        self.branch_max['invmassH'] = 150
+        # self.branch_max['invmassH'] = 150
 
         # number of bins
         self.branch_numbins = {}
@@ -163,4 +163,4 @@ class BranchInfo:
         self.branch_numbins['ucsdbt0'] = 20
         self.branch_numbins['xmj1'] = 16
         self.branch_numbins['xmj2'] = 12
-        self.branch_numbins['invmassH'] = 28
+        # self.branch_numbins['invmassH'] = 28

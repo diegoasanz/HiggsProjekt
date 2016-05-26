@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -113,27 +113,31 @@ class Analysis:
         h1.SetBinErrorOption(TH1F.kPoisson)
         # h1.sumw2() # if weighted distribution
         for name in names:
-            h2 = data_trees[name].GetBranchHistogram(branch_name, branch_nbin, branch_min, branch_max)
-            scale = data_trees[name].scaling_factor
-            h1.Add(h2, scale)
+            h2 = data_trees[name].branches_histograms[branch_name]
+            # scale = data_trees[name].scaling_factor
+            # h1.Add(h2, scale)
+            h1.Add(h2)
         h1.SetLineColor(TColor.kRed)
         h1.SetFillColor(TColor.kRed)
         dictionary[branch_name] = h1
 
     def monteCarloHistograms(self, names, data_trees, branch_names, branches_nbins, branches_mins, branches_maxs):
-        mc_histograms_dict = {name: {branch: data_trees[name].GetBranchHistogram(branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch]) for branch in branch_names} for name in names}
+        mc_histograms_dict = {name: {branch: data_trees[name].branches_histograms[branch] for branch in branch_names} for name in names}
         for name in names:
             for branch in branch_names:
-                mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
+                # mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
                 mc_histograms_dict[name][branch].SetLineColor(TColor.kBlue)
                 mc_histograms_dict[name][branch].SetFillColor(TColor.kBlue)
                 mc_histograms_dict[name][branch].SetBinErrorOption(TH1F.kPoisson)
         return deepcopy(mc_histograms_dict)
 
-    def overlayMCBckgrndSignal(self, mcname, branchname):
-        self.stacked_histograms(self.total_background_histograms_dict[branchname],self.mc_histograms_dict[mcname][branchname], mcname + '_' + branchname)
+    def overlayMCBckgrndSignal(self, mcname, branchname, doLogY=kTRUE):
+        self.stacked_histograms(self.total_background_histograms_dict[branchname],self.mc_histograms_dict[mcname][branchname], 'total_' + mcname + '_' + branchname, doLogY)
 
-    def stacked_histograms(self, backgroundHisto, mcHisto, branchname):
+    def compareMCBckgrndSignal(self, backgroundname, mcname, branchname, doLogY=kFALSE):
+        self.stacked_histograms(self.background_data_trees[backgroundname].branches_histograms[branchname],self.mc_histograms_dict[mcname][branchname], mcname + '_' + branchname, doLogY)
+
+    def stacked_histograms(self, backgroundHisto, mcHisto, branchname, doLogY):
         c1 = TCanvas('c1', 'c1', 1)
         c1.cd()
         s1 = THStack(branchname + '_stack', 's1_' + branchname)
@@ -141,7 +145,8 @@ class Analysis:
         s1.Add(mcHisto)
         s1.Draw()
         c1.BuildLegend()
-        c1.SetLogy()
+        if doLogY:
+            c1.SetLogy()
         self.stuff.append(s1)
 
 
