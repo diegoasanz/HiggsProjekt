@@ -88,7 +88,7 @@ class BranchInfo:
         self.branch_min['xmj1'] = 0 # there may be many 0 of events without jets
         self.branch_min['xmj2'] = 0 # there may be many 0 of events without jets
         # self.branch_min['invmassH'] = 10
-        
+
         # maximum values
         self.branch_max = {}
         self.branch_max['acop'] = TMath.Pi()
