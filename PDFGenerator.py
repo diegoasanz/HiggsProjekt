@@ -29,6 +29,19 @@ class PDFGenerator:
         self.signalHisto = signalHistos[branchName]
         self.backgroundHisto = backgroundsHistos[branchName]
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     def one_bin_mc(self, signal, background, mu, observed):
         MC = (mu * signal + background) ** observed / factorial(observed) * exp(- mu * signal - background)
         return deepcopy(MC)
