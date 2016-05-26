@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TH1F, TMath
+from ROOT import TH1F, TMath, RooStats
 from PDFGenerator import *
 from BranchInfo import *
 
@@ -31,3 +31,8 @@ class qValue:
         for binN in xrange(1, self.numBins+1, 1):
             L * self.poisson(binN)
         return L
+
+    def max_likelihood(self, L):
+        likelihood = []
+        for u in xrange(0,1,0.001):
+            likelihood.append()
