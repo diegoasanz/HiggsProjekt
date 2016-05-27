@@ -425,3 +425,5 @@ class BranchInfo:
         # self.toggle_cuts['invmassH'] = 28
 
         self.monte_carlo_to_analyse = '85'
+        self.test_statistics_branch = 'mvis'
+        self.number_toys = 1000

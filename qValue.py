@@ -10,8 +10,10 @@ from BranchInfo import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 class qValue:
-    def __init__(self, higgsName, branchName, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
+    def __init__(self, toy, histogrammu1, histogrammu2, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
         self.branch_info = BranchInfo()
+        self.numBins = self.branch_info.number_toys
+        self.auxiliary_histo = TH1F('h1', 'h1', self.numBins, 0, self.numBins)
         self.pdf = PDFGenerator(branchName, sig_bkg_histos, bkg_histos)
         self.numBins = self.branch_info.branch_numbins[branchName]
         self.sig_value = {binN: sig_histos[branchName].GetBinContent() for binN in xrange(self.numBins)}
@@ -19,7 +21,7 @@ class qValue:
         self.data_value = {binN: data_histos[higgsName][branchName]. GetBinContent for binN in xrange(self.numBins)}
         self.mc_value = {binN: self.pdf.functionSB[binN] for binN in xrange(self.numBins)}
 
-    def poisson(self, binN):
+    def poisson(self, ):
         s = self.sig_value[binN]
         b = self.bkg_value[binN]
         mc = self.mc_value[binN]

@@ -43,7 +43,8 @@ class Analysis:
         self.organize_trees(self.trees, self.names)
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
-        self.data_data_tree = DataTree(self.data_tree, 'data', -1, -1)
+        self.random = TRandom3(123654)
+        self.data_data_tree = DataTree(self.data_tree, 'data', -1, -1, self.random)
         print_banner('Loading branches information and settings...', '%')
         self.branch_info = BranchInfo()
         self.branch_names = self.branch_info.branch_names
@@ -53,10 +54,11 @@ class Analysis:
         print_banner('Totaling the histograms of the backgrounds for each branch...', '%')
         self.background_data_trees = self.create_background_data_trees()
         self.total_background_histograms_dict = self.totalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.total_background_toy_histograms_dict = self.totalToyBackgrounds(self.background_names, self.background_data_trees, self.branch_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        self.random = TRandom3(123654)
+        self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
@@ -92,11 +94,11 @@ class Analysis:
                 self.background_names.append(name)
 
     def create_background_data_trees(self):
-        dic = {name: DataTree(self.background_trees[name], name, self.cross_sections[name], self.num_events[name]) for name in self.background_names}
+        dic = {name: DataTree(self.background_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.background_names}
         return deepcopy(dic)
 
     def create_mc_data_trees(self):
-        dic = {name: DataTree(self.mc_higgs_trees[name], name, self.cross_sections[name], self.num_events[name]) for name in self.mc_higgs_names}
+        dic = {name: DataTree(self.mc_higgs_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.mc_higgs_names}
         return deepcopy(dic)
 
     def totalBackgrounds(self, names, data_trees, branches_names, branches_nbins, branches_mins, branches_maxs):
@@ -104,6 +106,11 @@ class Analysis:
         for branch in branches_names:
             self.accumulateHistogram(total_background_histograms_dict, names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch])
         return deepcopy(total_background_histograms_dict)
+
+    def totalToyBackgrounds(self, names, data_trees, branch, branches_nbins, branches_mins, branches_maxs):
+        total_toy_background_histogram = {i: self.accumulateToyHistogram(names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch], i) for i in xrange(self.branch_info.number_toys)}
+        return deepcopy(total_toy_background_histogram)
+
 
     def accumulateHistogram(self, dictionary, names, data_trees, branch_name, branch_nbin, branch_min, branch_max):
         nbins = int(branch_nbin + 1)
@@ -117,12 +124,33 @@ class Analysis:
             h1.Add(h2)
         dictionary[branch_name] = h1
 
+    def accumulateToyHistogram(self, names, data_trees, branch_name, branch_nbin, branch_min, branch_max, number):
+        nbins = int(branch_nbin + 1)
+        hmin = branch_min - float(branch_max - branch_min) / float(2 * branch_nbin)
+        hmax = branch_max + float(branch_max - branch_min) / float(2 * branch_nbin)
+        histo_name = branch_name + '_toy_background_'+str(number)
+        h1 = TH1F(histo_name, histo_name, nbins, hmin, hmax)
+        h1.SetBinErrorOption(TH1F.kPoisson)
+        for name in names:
+            h2 = data_trees[name].toys[number]
+            h1.Add(h2, data_trees[name].scaling_factor)
+        return deepcopy(h1)
+
     def monteCarloHistograms(self, names, data_trees, branch_names, branches_nbins, branches_mins, branches_maxs):
         mc_histograms_dict = {name: {branch: data_trees[name].branches_histograms[branch] for branch in branch_names} for name in names}
         for name in names:
             for branch in branch_names:
                 mc_histograms_dict[name][branch].SetBinErrorOption(TH1F.kPoisson)
         return deepcopy(mc_histograms_dict)
+
+    def monteCarloToyHistograms(self, names, data_trees, branch,  branches_nbins, branches_mins, branches_maxs):
+        mc_toy_histogram_dict = {name: {i: data_trees[name].toys[i] for i in xrange(self.branch_info.number_toys)} for name in names}
+        for name in names:
+            for num in xrange(self.branch_info.number_toys):
+                mc_toy_histogram_dict[name][num].SetBinErrorOption(TH1F.kPoisson)
+                mc_toy_histogram_dict[name][num].Scale(data_trees[name].scaling_factor)
+        return deepcopy(mc_toy_histogram_dict)
+
 
     def overlayMCBckgrndSignal(self, mcname, branchname, doLogY=kFALSE):
         backgrounds_histo = self.total_background_histograms_dict[branchname]
@@ -199,6 +227,7 @@ class Analysis:
         else:
             histo = self.total_background_histograms_dict[branchname]
         return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}
+
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':

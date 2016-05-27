@@ -20,6 +20,7 @@ class ToyExperimentGen:
         self.random = randomgen
         self.input_histo = histo
         self.branch_info = BranchInfo()
+        self.number = num
         self.numBins = int(self.branch_info.branch_numbins[branchName] + 1)
         self.maxBin = self.branch_info.branch_max[branchName]+float(self.branch_info.branch_max[branchName]-self.branch_info.branch_min[branchName])/float(2 * self.branch_info.branch_numbins[branchName])
         self.minBin = self.branch_info.branch_min[branchName]-float(self.branch_info.branch_max[branchName]-self.branch_info.branch_min[branchName])/float(2 * self.branch_info.branch_numbins[branchName])
@@ -59,7 +60,7 @@ class ToyExperimentGen:
                 return float(cdf[k][0])
             elif y < cdf[k][1]:
                 return float((cdf[k][0] + cdf[k-1][0])/2)
-        return float(cdf[-1][0])
+        return float(cdf[len(cdf)-1][0])
 
 
 
