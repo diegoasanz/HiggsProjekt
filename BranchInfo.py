@@ -171,7 +171,7 @@ class BranchInfo:
         self.branch_85_lowcut['btag1'] = 0.17
         self.branch_85_lowcut['btag2'] = 0.07
         self.branch_85_lowcut['ele_ene'] = -1
-        self.branch_85_lowcut['ele_num'] = -1
+        self.branch_85_lowcut['ele_num'] = 1
         self.branch_85_lowcut['ele_phi'] = -1
         self.branch_85_lowcut['ele_the'] = 0.39
         self.branch_85_lowcut['encm'] = -1
@@ -184,7 +184,7 @@ class BranchInfo:
         self.branch_85_lowcut['maxxov'] = 0.07
         self.branch_85_lowcut['mmis'] = 67
         self.branch_85_lowcut['muon_ene'] = -1
-        self.branch_85_lowcut['muon_num'] = -1
+        self.branch_85_lowcut['muon_num'] = 1
         self.branch_85_lowcut['muon_phi'] = -1
         self.branch_85_lowcut['muon_the'] = 0.7
         self.branch_85_lowcut['mvis'] = -1
@@ -208,7 +208,7 @@ class BranchInfo:
         self.branch_85_highcut['btag1'] = 1000
         self.branch_85_highcut['btag2'] = 1000
         self.branch_85_highcut['ele_ene'] = 33
-        self.branch_85_highcut['ele_num'] = 1000
+        self.branch_85_highcut['ele_num'] = 3
         self.branch_85_highcut['ele_phi'] = 1000
         self.branch_85_highcut['ele_the'] = 2.6
         self.branch_85_highcut['encm'] = 1000
@@ -221,7 +221,7 @@ class BranchInfo:
         self.branch_85_highcut['maxxov'] = 0.51
         self.branch_85_highcut['mmis'] = 123
         self.branch_85_highcut['muon_ene'] = 18
-        self.branch_85_highcut['muon_num'] = 1000
+        self.branch_85_highcut['muon_num'] = 3
         self.branch_85_highcut['muon_phi'] = 1000
         self.branch_85_highcut['muon_the'] = 2.6
         self.branch_85_highcut['mvis'] = 1000
@@ -245,7 +245,7 @@ class BranchInfo:
         self.branch_90_lowcut['btag1'] = 0.17
         self.branch_90_lowcut['btag2'] = 0.07
         self.branch_90_lowcut['ele_ene'] = -1
-        self.branch_90_lowcut['ele_num'] = -1
+        self.branch_90_lowcut['ele_num'] = 1
         self.branch_90_lowcut['ele_phi'] = -1
         self.branch_90_lowcut['ele_the'] = 0.39
         self.branch_90_lowcut['encm'] = -1
@@ -258,7 +258,7 @@ class BranchInfo:
         self.branch_90_lowcut['maxxov'] = 0.07
         self.branch_90_lowcut['mmis'] = 67
         self.branch_90_lowcut['muon_ene'] = -1
-        self.branch_90_lowcut['muon_num'] = -1
+        self.branch_90_lowcut['muon_num'] = 1
         self.branch_90_lowcut['muon_phi'] = -1
         self.branch_90_lowcut['muon_the'] = 0.7
         self.branch_90_lowcut['mvis'] = -1
@@ -282,7 +282,7 @@ class BranchInfo:
         self.branch_90_highcut['btag1'] = 1000
         self.branch_90_highcut['btag2'] = 1000
         self.branch_90_highcut['ele_ene'] = 33
-        self.branch_90_highcut['ele_num'] = 1000
+        self.branch_90_highcut['ele_num'] = 3
         self.branch_90_highcut['ele_phi'] = 1000
         self.branch_90_highcut['ele_the'] = 2.6
         self.branch_90_highcut['encm'] = 1000
@@ -295,7 +295,7 @@ class BranchInfo:
         self.branch_90_highcut['maxxov'] = 0.66
         self.branch_90_highcut['mmis'] = 123
         self.branch_90_highcut['muon_ene'] = 18
-        self.branch_90_highcut['muon_num'] = 1000
+        self.branch_90_highcut['muon_num'] = 3
         self.branch_90_highcut['muon_phi'] = 1000
         self.branch_90_highcut['muon_the'] = 2.6
         self.branch_90_highcut['mvis'] = 1000
@@ -319,7 +319,7 @@ class BranchInfo:
         self.branch_95_lowcut['btag1'] = 0.07
         self.branch_95_lowcut['btag2'] = 0.07
         self.branch_95_lowcut['ele_ene'] = -1
-        self.branch_95_lowcut['ele_num'] = -1
+        self.branch_95_lowcut['ele_num'] = 1
         self.branch_95_lowcut['ele_phi'] = -1
         self.branch_95_lowcut['ele_the'] = 0.7
         self.branch_95_lowcut['encm'] = -1
@@ -332,7 +332,7 @@ class BranchInfo:
         self.branch_95_lowcut['maxxov'] = 0.07
         self.branch_95_lowcut['mmis'] = 67
         self.branch_95_lowcut['muon_ene'] = 9
-        self.branch_95_lowcut['muon_num'] = -1
+        self.branch_95_lowcut['muon_num'] = 1
         self.branch_95_lowcut['muon_phi'] = -1
         self.branch_95_lowcut['muon_the'] = 0.7
         self.branch_95_lowcut['mvis'] = -1
@@ -356,7 +356,7 @@ class BranchInfo:
         self.branch_95_highcut['btag1'] = 1000
         self.branch_95_highcut['btag2'] = 1000
         self.branch_95_highcut['ele_ene'] = 33
-        self.branch_95_highcut['ele_num'] = 1000
+        self.branch_95_highcut['ele_num'] = 3
         self.branch_95_highcut['ele_phi'] = 1000
         self.branch_95_highcut['ele_the'] = 2.6
         self.branch_95_highcut['encm'] = 1000
@@ -369,7 +369,7 @@ class BranchInfo:
         self.branch_95_highcut['maxxov'] = 0.66
         self.branch_95_highcut['mmis'] = 123
         self.branch_95_highcut['muon_ene'] = 18
-        self.branch_95_highcut['muon_num'] = 1000
+        self.branch_95_highcut['muon_num'] = 3
         self.branch_95_highcut['muon_phi'] = 1000
         self.branch_95_highcut['muon_the'] = 2.6
         self.branch_95_highcut['mvis'] = 1000
@@ -390,8 +390,8 @@ class BranchInfo:
         self.toggle_cuts = {}
         self.toggle_cuts['acop'] = 0
         self.toggle_cuts['acthm'] = 0
-        self.toggle_cuts['btag1'] = 1
-        self.toggle_cuts['btag2'] = 1
+        self.toggle_cuts['btag1'] = 0
+        self.toggle_cuts['btag2'] = 0
         self.toggle_cuts['ele_ene'] = 0
         self.toggle_cuts['ele_num'] = 0
         self.toggle_cuts['ele_phi'] = 0
@@ -405,7 +405,7 @@ class BranchInfo:
         self.toggle_cuts['maxcthj'] = 0
         self.toggle_cuts['maxxov'] = 0
         self.toggle_cuts['mmis'] = 0
-        self.toggle_cuts['muon_ene'] = 1
+        self.toggle_cuts['muon_ene'] = 0
         self.toggle_cuts['muon_num'] = 0
         self.toggle_cuts['muon_phi'] = 0
         self.toggle_cuts['muon_the'] = 0

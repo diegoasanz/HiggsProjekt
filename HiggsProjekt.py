@@ -3,15 +3,17 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3
 from glob import glob
 from copy import deepcopy
 from DataTree import *
 from BranchInfo import *
+from ToyExperimentGen import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
+
 
 
 class Analysis:
@@ -54,6 +56,7 @@ class Analysis:
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.random = TRandom3(123654)
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
@@ -188,6 +191,14 @@ class Analysis:
 
     def integral_signal(self, branchname):
         return self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname].Integral()
+
+    def generate_toy_experiments(self, type, branchname, num):
+        name = type + '_' + branchname
+        if type == 'signal':
+            histo = self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname]
+        else:
+            histo = self.total_background_histograms_dict[branchname]
+        return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
