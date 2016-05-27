@@ -3,15 +3,17 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3
 from glob import glob
 from copy import deepcopy
 from DataTree import *
 from BranchInfo import *
+from ToyExperimentGen import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
+
 
 
 class Analysis:
@@ -41,6 +43,7 @@ class Analysis:
         self.organize_trees(self.trees, self.names)
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
+        self.data_data_tree = DataTree(self.data_tree, 'data', -1, -1)
         print_banner('Loading branches information and settings...', '%')
         self.branch_info = BranchInfo()
         self.branch_names = self.branch_info.branch_names
@@ -53,9 +56,7 @@ class Analysis:
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        # self.get_data = GetData(self.trees, self.names, 'mmis')
-        # self.histograms = self.get_data.histograms
-        # self.norm_histograms = self.get_data.norm_histograms
+        self.random = TRandom3(123654)
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
@@ -111,44 +112,93 @@ class Analysis:
         histo_name = branch_name + '_background'
         h1 = TH1F(histo_name, histo_name, nbins, hmin, hmax)
         h1.SetBinErrorOption(TH1F.kPoisson)
-        # h1.sumw2() # if weighted distribution
         for name in names:
             h2 = data_trees[name].branches_histograms[branch_name]
-            # scale = data_trees[name].scaling_factor
-            # h1.Add(h2, scale)
             h1.Add(h2)
-        h1.SetLineColor(TColor.kRed)
-        h1.SetFillColor(TColor.kRed)
         dictionary[branch_name] = h1
 
     def monteCarloHistograms(self, names, data_trees, branch_names, branches_nbins, branches_mins, branches_maxs):
         mc_histograms_dict = {name: {branch: data_trees[name].branches_histograms[branch] for branch in branch_names} for name in names}
         for name in names:
             for branch in branch_names:
-                # mc_histograms_dict[name][branch].Scale(data_trees[name].scaling_factor)
-                mc_histograms_dict[name][branch].SetLineColor(TColor.kBlue)
-                mc_histograms_dict[name][branch].SetFillColor(TColor.kBlue)
                 mc_histograms_dict[name][branch].SetBinErrorOption(TH1F.kPoisson)
         return deepcopy(mc_histograms_dict)
 
-    def overlayMCBckgrndSignal(self, mcname, branchname, doLogY=kTRUE):
-        self.stacked_histograms(self.total_background_histograms_dict[branchname],self.mc_histograms_dict[mcname][branchname], 'total_' + mcname + '_' + branchname, doLogY)
+    def overlayMCBckgrndSignal(self, mcname, branchname, doLogY=kFALSE):
+        backgrounds_histo = self.total_background_histograms_dict[branchname]
+        backgrounds_histo.SetFillColor(TColor.kRed)
+        backgrounds_histo.SetLineColor(TColor.kRed)
+        signal_histo = self.mc_histograms_dict[mcname][branchname]
+        signal_histo.SetFillColor(TColor.kBlue)
+        signal_histo.SetLineColor(TColor.kBlue)
+        self.stacked_histograms(backgrounds_histo, signal_histo, 'total_' + mcname + '_' + branchname, doLogY)
 
     def compareMCBckgrndSignal(self, backgroundname, mcname, branchname, doLogY=kFALSE):
-        self.stacked_histograms(self.background_data_trees[backgroundname].branches_histograms[branchname],self.mc_histograms_dict[mcname][branchname], mcname + '_' + branchname, doLogY)
+        background_histo = self.background_data_trees[backgroundname].branches_histograms[branchname]
+        background_histo.SetFillColor(TColor.kWhite)
+        background_histo.SetLineColor(TColor.kRed)
+        signal_histo = self.mc_histograms_dict[mcname][branchname]
+        signal_histo.SetFillColor(TColor.kWhite)
+        signal_histo.SetLineColor(TColor.kBlue)
+        self.stacked_histograms(background_histo, signal_histo, mcname + '_' + branchname, doLogY, kFALSE)
 
-    def stacked_histograms(self, backgroundHisto, mcHisto, branchname, doLogY):
+    def significanceOverlayBckgrndSignal(self, mcname, branchname, doLogY=kFALSE):
+        background_histo = self.total_background_histograms_dict[branchname]
+        signal_histo = self.mc_histograms_dict[mcname][branchname]
+        nbins = self.branch_numbins[branchname] + 1
+        hmin = self.branch_mins[branchname] - float(self.branch_maxs[branchname] - self.branch_mins[branchname]) / float(2 * self.branch_numbins[branchname])
+        hmax = self.branch_maxs[branchname] + float(self.branch_maxs[branchname] - self.branch_mins[branchname]) / float(2 * self.branch_numbins[branchname])
+        histo = TH1F('significance_'+mcname+'_totalBK', 'significance_'+mcname+'_totalBK', nbins, hmin, hmax)
+        for bin in xrange(nbins):
+            if background_histo.GetBinContent(bin) != 0:
+                histo.SetBinContent(bin, signal_histo.GetBinContent(bin)/TMath.Sqrt(background_histo.GetBinContent(bin)))
         c1 = TCanvas('c1', 'c1', 1)
+        c1.cd()
+        histo.Draw()
+        if doLogY:
+            c1.SetLogy()
+        self.stuff.append(histo)
+
+    def stacked_histograms(self, backgroundHisto, mcHisto, branchname, doLogY, doStack=1):
+        c1 = TCanvas('c2', 'c2', 1)
         c1.cd()
         s1 = THStack(branchname + '_stack', 's1_' + branchname)
         s1.Add(backgroundHisto)
         s1.Add(mcHisto)
-        s1.Draw()
+        if doStack:
+            s1.Draw()
+        else:
+            s1.Draw('nostack')
         c1.BuildLegend()
         if doLogY:
             c1.SetLogy()
         self.stuff.append(s1)
 
+    def purity(self, branchname):
+        if self.branch_info.monte_carlo_to_analyse == '85':
+            signal = self.mc_histograms_dict['85'][branchname].Integral()
+        elif self.branch_info.monte_carlo_to_analyse == '90':
+            signal = self.mc_histograms_dict['90'][branchname].Integral()
+        else:
+            signal = self.mc_histograms_dict['95'][branchname].Integral()
+        background = self.total_background_histograms_dict[branchname].Integral()
+        return float(signal/(signal + background))
+
+    def significance(self, branchname):
+        signal = self.integral_signal(branchname)
+        background = self.total_background_histograms_dict[branchname].Integral()
+        return float(signal/TMath.Sqrt(background))
+
+    def integral_signal(self, branchname):
+        return self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname].Integral()
+
+    def generate_toy_experiments(self, type, branchname, num):
+        name = type + '_' + branchname
+        if type == 'signal':
+            histo = self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname]
+        else:
+            histo = self.total_background_histograms_dict[branchname]
+        return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
