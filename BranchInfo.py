@@ -419,7 +419,7 @@ class BranchInfo:
         self.toggle_cuts['pho_the'] = 0
         self.toggle_cuts['thj1'] = 0
         self.toggle_cuts['thj2'] = 0
-        self.toggle_cuts['ucsdbt0'] = 1
+        self.toggle_cuts['ucsdbt0'] = 0
         self.toggle_cuts['xmj1'] = 0
         self.toggle_cuts['xmj2'] = 0
         # self.toggle_cuts['invmassH'] = 28
