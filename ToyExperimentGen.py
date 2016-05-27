@@ -15,8 +15,6 @@ __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
 
-random = TRandom3(123654)
-
 class ToyExperimentGen:
     def __init__(self, histo, branchName, randomgen, num, name):
         self.random = randomgen
@@ -28,11 +26,11 @@ class ToyExperimentGen:
         self.widthBin = float((self.maxBin - self.minBin)/self.numBins)
         self.toy = TH1F(name+'_'+str(num), name+'_'+str(num), self.numBins, self.minBin, self.maxBin)
         self.generate_toy_bins()
-        ## c3 = TCanvas('c3','c3',1)
-        ## c3.cd()
-        ## self.toy.Draw()
-        ## c3.SaveAs('toy_'+str(num)+'.png')
-        ## c3.Delete()
+        # c3 = TCanvas('c3','c3',1)
+        # c3.cd()
+        # self.toy.Draw()
+        # c3.SaveAs('toy_'+str(num)+'.png')
+        # c3.Delete()
         ## self.sig_bkg = sig_bkg_histos[branchName]
         ## self.bkg = bkg_histos[branchName]
         ## self.functionSB = {binN: TGraphErrors(self.numBins, self.sig_bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.sig_bkg)[0], random, self.cdf_generator(self.sig_bkg)[1]), self.widthBin, self.sig_bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
