@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -171,6 +171,23 @@ class Analysis:
             c1.SetLogy()
         self.stuff.append(s1)
 
+    def purity(self, branchname):
+        if self.branch_info.monte_carlo_to_analyse == '85':
+            signal = self.mc_histograms_dict['85'][branchname].Integral()
+        elif self.branch_info.monte_carlo_to_analyse == '90':
+            signal = self.mc_histograms_dict['90'][branchname].Integral()
+        else:
+            signal = self.mc_histograms_dict['95'][branchname].Integral()
+        background = self.total_background_histograms_dict[branchname].Integral()
+        return float(signal/(signal + background))
+
+    def significance(self, branchname):
+        signal = self.integral_signal(branchname)
+        background = self.total_background_histograms_dict[branchname].Integral()
+        return float(signal/TMath.Sqrt(background))
+
+    def integral_signal(self, branchname):
+        return self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname].Integral()
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':

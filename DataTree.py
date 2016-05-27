@@ -8,6 +8,7 @@ from glob import glob
 from copy import deepcopy
 from BranchInfo import *
 from array import array
+from Cuts import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -31,14 +32,17 @@ class DataTree:
             self.scaling_factor = float(176.773 / self.luminosity)
         #self.CreateBranchInvariantMass() # Create branch of invariant mass
         self.branches_info = BranchInfo()
+        self.cuts = Cuts()
+        self.cuts_words = self.cuts.cuts_words
         self.branches_histograms = {branch: self.GetBranchHistogram(branch, self.branches_info.branch_numbins[branch], self.branches_info.branch_min[branch], self.branches_info.branch_max[branch]) for branch in self.branches_info.branch_names}
 
     def GetBranchHistogram(self, branchname, nbins_histo, min_histo, max_histo):
         histogram_name = branchname + '_' + self.tree_name
+        cutword = self.cuts_words[self.branches_info.monte_carlo_to_analyse]
         histogram = TH1F(histogram_name, histogram_name, int(nbins_histo + 1), float(min_histo - float(max_histo - min_histo) / float(2 * nbins_histo)), float(max_histo + float(max_histo - min_histo) / float(2 * nbins_histo)))
         histogram.SetBinErrorOption(TH1F.kPoisson)
         histogram.SetStats(kFALSE)
-        self.tree.Draw('{branch}>>{histo}'.format(branch=branchname, histo=histogram_name), '', 'goff')
+        self.tree.Draw('{branch}>>{histo}'.format(branch=branchname, histo=histogram_name), cutword, 'goff')
         histogram.Scale(self.scaling_factor)
         return deepcopy(histogram)
 
