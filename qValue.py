@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TH1F, TMath, RooStats
+from ROOT import TH1F, TMath, RooStats, TF1
 from PDFGenerator import *
 from BranchInfo import *
 
@@ -23,7 +23,7 @@ class qValue:
         s = self.sig_value[binN]
         b = self.bkg_value[binN]
         mc = self.mc_value[binN]
-        pdf = TMath.Poisson(u * s + b, mc)
+        pdf = TF1("pdf", "TMath.Poisson(u * s + b, mc)", 0, 1)
         return deepcopy(pdf)
 
     def likelihood(self):
@@ -33,6 +33,6 @@ class qValue:
         return L
 
     def max_likelihood(self, L):
-        likelihood = []
-        for u in xrange(0,1,0.001):
-            likelihood.append()
+        for u in xrange(0, 1, 0.001):
+            if L(u+1) - L(u) == 0:
+                return u
