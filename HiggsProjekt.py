@@ -46,9 +46,9 @@ class Analysis:
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         self.random = TRandom3(123654)
+        self.analyze_info = AnalyzeInfo()
         self.data_data_tree = DataTree(self.analyze_info, self.data_tree, 'data', -1, -1, self.random)
         print_banner('Loading branches information and settings...', '%')
-        self.analyze_info = AnalyzeInfo()
         self.branch_names = self.analyze_info.branch_names
         self.branch_numbins = self.analyze_info.branch_numbins
         self.branch_mins = self.analyze_info.branch_min
@@ -64,6 +64,9 @@ class Analysis:
         self.profile_likelihoods_list = []
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
+
+    def __del__(self):
+        print 'Deleting', self
 
     def get_names_trees(self):
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
