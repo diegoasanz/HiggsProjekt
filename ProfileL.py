@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TH1F, TMath, RooStats, TF1, TMinuit, Double, Long
+from ROOT import TH1F, TMath, RooStats, TF1, TMinuit, Double, Long, gMinuit, kTRUE
 from ToyExperimentGen import *
 from AnalyzeInfo import *
 from array import array
@@ -11,44 +11,104 @@ from Utils import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 class ProfileL:
-    def __init__(self, toy, background, signal):
-        self.branch_info = AnalyzeInfo()
+    def __init__(self, analyzeInfo, toy_background, toy_signal, background, signal, exclusion_mu=1):
+        self.branch_info = analyzeInfo
         self.num_bins = self.branch_info.branch_numbins[self.branch_info.test_statistics_branch]
-        self.toy = toy
+        self.toy_bkg = toy_background
+        self.toy_sgn = toy_signal
+        self.toy_sgnbkg = deepcopy(self.toy_sgn)
+        self.toy_sgnbkg.Add(self.toy_bkg)
         self.background = background
         self.signal = signal
-        self.nll = Double(0)
+        self.mu_excl = float(exclusion_mu)
+        # Minuit parameters
         self.npar = 1
         self.start_value_mu = 0.5
         self.init_step_mu = 0.001
         self.max_iterations = 1000
-        self.tolerance = 3
+        self.tolerance = 0.001
         self.min_mu = -1
         self.max_mu = 10
-        self.mu = self.fit_mu(self.toy, self.background, self.signal)
+        self.working_toy = self.toy_bkg
+        self.mu_toy_bkg = self.fit_mu(self.background, self.signal)
+        self.working_toy = self.toy_sgnbkg
+        self.mu_toy_sgnbkg = self.fit_mu(self.background, self.signal)
+        #
+        # For discovery:
+        #
+        self.working_toy = self.toy_bkg
+        self.nll_q0_mu_bkg_num = self.nll_value(1, [0])
+        self.working_toy = self.toy_sgnbkg
+        self.nll_q0_mu_sgnbkg_num = self.nll_value(1, [0])
+        # in discovery, q0 = 0 when mu_toy_* is smaller than 0
+        if self.mu_toy_bkg < 0:
+            self.nll_q0_mu_bkg_den = self.nll_q0_mu_bkg_num  # in this way q0 will be 0
+        else:
+            self.working_toy = self.toy_bkg
+            self.nll_q0_mu_bkg_den = self.nll_value(1, [self.mu_toy_bkg])
+        if self.mu_toy_sgnbkg < 0:
+            self.nll_q0_mu_sgnbkg_den = self.nll_q0_mu_sgnbkg_num  # in this way q1 will be 0
+        else:
+            self.working_toy = self.toy_sgnbkg
+            self.nll_q0_mu_sgnbkg_den = self.nll_value(1, [self.mu_toy_sgnbkg])
+        self.q0_bkg = self.nll_q0_mu_bkg_num - self.nll_q0_mu_bkg_den
+        self.Z0_bkg = TMath.Sqrt(self.q0_bkg)
+        self.q0_sgnbkg = self.nll_q0_mu_sgnbkg_num - self.nll_q0_mu_sgnbkg_den
+        self.Z0_sgnbkg = TMath.Sqrt(self.q0_sgnbkg)
+        #
+        # For exclusion:
+        #
+        self.working_toy = self.toy_bkg
+        self.nll_qe_mu_bkg_num = self.nll_value(1, [self.mu_excl])
+        self.working_toy = self.toy_sgnbkg
+        self.nll_qe_mu_sgnbkg_num = self.nll_value(1, [self.mu_excl])
+        # if mu_toy_* is smaller than 0 then q0 should be -2*ln(L(mu_excl,the'')/L(0,the'')); if mu_toy_* is larger than mu_excl, q0 should be 0
+        if self.mu_toy_bkg < 0:
+            self.working_toy = self.toy_bkg
+            self.nll_qe_mu_bkg_den = self.nll_value(1, [0])  # for L(0,the'')
+        elif self.mu_toy_bkg > self.mu_excl:
+            self.nll_qe_mu_bkg_den = self.nll_qe_mu_bkg_num  # in this way q0 will be 0
+        else:
+            self.working_toy = self.toy_bkg
+            self.nll_qe_mu_bkg_den = self.nll_value(1, [self.mu_toy_bkg])
+        if self.mu_toy_sgnbkg < 0:
+            self.working_toy = self.toy_sgnbkg
+            self.nll_qe_mu_sgnbkg_den = self.nll_value(1, [0])  # for L(0,the'')
+        elif self.mu_toy_sgnbkg > self.mu_excl:
+            self.nll_qe_mu_sgnbkg_den = self.nll_qe_mu_sgnbkg_num  # in this way q0 will be 0
+        else:
+            self.working_toy = self.toy_sgnbkg
+            self.nll_qe_mu_sgnbkg_den = self.nll_value(1, [self.mu_toy_sgnbkg])
+        self.qe_bkg = self.nll_qe_mu_bkg_num - self.nll_qe_mu_bkg_den
+        self.Ze_bkg = TMath.Sqrt(self.qe_bkg)
+        self.qe_sgnbkg = self.nll_qe_mu_sgnbkg_num - self.nll_qe_mu_sgnbkg_den
+        self.Ze_sgnbkg = TMath.Sqrt(self.qe_sgnbkg)
+
+    def __del__(self):
+        print 'Deleting', self
 
     def nll_value(self, npar, par):
         '''
-
         :param npar: number of parameters, should be 1
         :param par: value of "mu", should be handed as a list of one element. e.g. nll_value(1,[0.5])
         :return: the value of the negative log-likelihood
         '''
-        self.nll = Double(0)
+        nll = Double(0)
         for bin in xrange(1, self.num_bins + 1):
             b = self.background.GetBinContent(bin)
             s = self.signal.GetBinContent(bin)
-            t = self.toy.GetBinContent(bin)
-            f = (-2)*TMath.Log(TMath.Poisson(t,b + par[0]*s))
-            self.nll += f
-        return self.nll
+            t = self.working_toy.GetBinContent(bin)
+            f = (-2)*TMath.Log(TMath.Poisson(t, b + par[0]*s))
+            nll += f
+        return nll
 
     def fcn(self, npar, deriv, f, apar, iflag):
         f[0] = self.nll_value(npar, apar)
 
-    def fit_mu(self,toy, background, signal):
+    def fit_mu(self, background, signal):
         myMinuit = TMinuit(self.npar)
         myMinuit.SetFCN(self.fcn)
+        gMinuit.Command('SET PRINT -1')
         ierflg = Long(0)
         myMinuit.mnparm(0, 'mu', self.start_value_mu, self.init_step_mu, self.min_mu, self.max_mu, ierflg)
         arglist = array('d', (0, 0))
@@ -62,45 +122,10 @@ class ProfileL:
         # get final results
         p, pe = Double(0), Double(0)
         myMinuit.GetParameter(0, p, pe)
-        finalPar = float(p)
-        finalParErr = float(pe)
-        print_banner('MINUIT fit completed:')
-        print ' fcn@minimum = %.3g' %(amin)," error code =", ierflg, " status =", icstat
-        print " Results: \t value error"
-        print ' %s: \t%10.3e +/- %.1e '%('mu', finalPar, finalParErr)
+        # finalPar = float(p)
+        # finalParErr = float(pe)
+        # print_banner('MINUIT fit completed:')
+        # print ' fcn@minimum = %.3g' %(amin)," error code =", ierflg, " status =", icstat
+        # print " Results: \t value error"
+        # print ' %s: \t%10.3e +/- %.1e '%('mu', finalPar, finalParErr)
         return p
-
-    def qValue(self, toy, histogram_num, histogram_den, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
-        numBins = self.branch_info.number_toys
-        auxiliary_histo = TH1F('h1', 'h1', numBins, 0, numBins)
-        auxiliary_histo.SetBinErrorOption(TH1F.kPoisson)
-        for bin in xrange(1, numBins+1):
-            toy_bin_cont = toy.GetBinContent(bin)
-            h_num_bin_cont = histogram_num.GetBinContent(bin)
-            h_den_bin_cont = histogram_den.GetBinContent(bin)
-            auxiliary_histo.SetBinContent(bin, log(TMath.Poisson(toy_bin_cont, h_num_bin_cont) - log(TMath.Poisson(toy_bin_cont, h_den_bin_cont))))
-        return ((-2) * auxiliary_histo.Integral())
-        # self.pdf = PDFGenerator(branchName, sig_bkg_histos, bkg_histos)
-        # self.numBins = self.branch_info.branch_numbins[branchName]
-        # self.sig_value = {binN: sig_histos[branchName].GetBinContent() for binN in xrange(self.numBins)}
-        # self.bkg_value = {binN: bkg_histos[branchName].GetBinContent() for binN in xrange(self.numBins)}
-        # self.data_value = {binN: data_histos[higgsName][branchName]. GetBinContent for binN in xrange(self.numBins)}
-        # self.mc_value = {binN: self.pdf.functionSB[binN] for binN in xrange(self.numBins)}
-
-    # def poisson(self, ):
-    #     s = self.sig_value[binN]
-    #     b = self.bkg_value[binN]
-    #     mc = self.mc_value[binN]
-    #     pdf = TF1("pdf", "TMath.Poisson(u * s + b, mc)", 0, 1)
-    #     return deepcopy(pdf)
-    #
-    # def likelihood(self):
-    #     L = 1
-    #     for binN in xrange(1, self.numBins+1, 1):
-    #         L * self.poisson(binN)
-    #     return L
-    #
-    # def max_likelihood(self, L):
-    #     for u in xrange(0, 1, 0.001):
-    #         if L(u+1) - L(u) == 0:
-    #             return u

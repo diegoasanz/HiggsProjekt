@@ -390,8 +390,8 @@ class AnalyzeInfo:
         self.toggle_cuts = {}
         self.toggle_cuts['acop'] = 0
         self.toggle_cuts['acthm'] = 0
-        self.toggle_cuts['btag1'] = 0
-        self.toggle_cuts['btag2'] = 0
+        self.toggle_cuts['btag1'] = 1
+        self.toggle_cuts['btag2'] = 1
         self.toggle_cuts['ele_ene'] = 0
         self.toggle_cuts['ele_num'] = 0
         self.toggle_cuts['ele_phi'] = 0
@@ -426,4 +426,8 @@ class AnalyzeInfo:
 
         self.monte_carlo_to_analyse = '85'
         self.test_statistics_branch = 'mvis'
-        self.number_toys = 5
+        self.number_toys = 1000
+        self.bins_q_histos = 100
+
+    def __del__(self):
+        print 'Deleting', self

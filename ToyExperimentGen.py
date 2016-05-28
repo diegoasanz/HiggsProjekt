@@ -16,11 +16,11 @@ __author__ = 'Pin-Jung & Diego Alejandro'
 from Utils import *
 
 class ToyExperimentGen:
-    def __init__(self, histo, branchName, randomgen, num, name):
+    def __init__(self, analyzeInfo, histo, branchName, randomgen, num, name):
         self.random = randomgen
         self.input_histo = histo
-        self.analyze_info = AnalyzeInfo()
-        # self.number = num
+        self.analyze_info = analyzeInfo
+        self.number = num
         self.numBins = int(self.analyze_info.branch_numbins[branchName] + 1)
         self.maxBin = self.analyze_info.branch_max[branchName]+float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
         self.minBin = self.analyze_info.branch_min[branchName]-float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
@@ -36,6 +36,9 @@ class ToyExperimentGen:
         ## self.bkg = bkg_histos[branchName]
         ## self.functionSB = {binN: TGraphErrors(self.numBins, self.sig_bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.sig_bkg)[0], random, self.cdf_generator(self.sig_bkg)[1]), self.widthBin, self.sig_bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
         ## self.functionB = {binN: TGraphErrors(self.numBins, self.bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.bkg)[0], random, self.cdf_generator(self.bkg)[1]), self.widthBin, self.bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
+
+    def __del__(self):
+        print 'Deleting', self
 
     def generate_toy_bins(self):
         for bin_i in xrange(1, self.numBins+1):

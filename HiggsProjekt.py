@@ -3,13 +3,14 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3, gStyle
 from glob import glob
 from copy import deepcopy
 from DataTree import *
 from AnalyzeInfo import *
 from ToyExperimentGen import *
 from ProfileL import *
+from numpy import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -45,9 +46,9 @@ class Analysis:
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         self.random = TRandom3(123654)
-        self.data_data_tree = DataTree(self.data_tree, 'data', -1, -1, self.random)
-        print_banner('Loading branches information and settings...', '%')
         self.analyze_info = AnalyzeInfo()
+        self.data_data_tree = DataTree(self.analyze_info, self.data_tree, 'data', -1, -1, self.random)
+        print_banner('Loading branches information and settings...', '%')
         self.branch_names = self.analyze_info.branch_names
         self.branch_numbins = self.analyze_info.branch_numbins
         self.branch_mins = self.analyze_info.branch_min
@@ -60,8 +61,12 @@ class Analysis:
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.profile_likelihoods_list = []
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
+
+    def __del__(self):
+        print 'Deleting', self
 
     def get_names_trees(self):
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
@@ -95,11 +100,11 @@ class Analysis:
                 self.background_names.append(name)
 
     def create_background_data_trees(self):
-        dic = {name: DataTree(self.background_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.background_names}
+        dic = {name: DataTree(self.analyze_info, self.background_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.background_names}
         return deepcopy(dic)
 
     def create_mc_data_trees(self):
-        dic = {name: DataTree(self.mc_higgs_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.mc_higgs_names}
+        dic = {name: DataTree(self.analyze_info, self.mc_higgs_trees[name], name, self.cross_sections[name], self.num_events[name], self.random) for name in self.mc_higgs_names}
         return deepcopy(dic)
 
     def totalBackgrounds(self, names, data_trees, branches_names, branches_nbins, branches_mins, branches_maxs):
@@ -227,8 +232,89 @@ class Analysis:
             histo = self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname]
         else:
             histo = self.total_background_histograms_dict[branchname]
-        return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}
+        return {i: ToyExperimentGen(self.analyze_info, histo, branchname, self.random, i, name) for i in xrange(num)}
 
+    def calculate_profile_L_objects(self, mu_excl=1):
+        self.profile_likelihoods_list=[ProfileL(self.analyze_info, self.total_background_toy_histograms_dict[i],
+                                                self.mc_toy_histograms_dict[self.analyze_info.monte_carlo_to_analyse][i],
+                                                self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
+                                                self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.analyze_info.test_statistics_branch],
+                                                mu_excl) for i in xrange(self.analyze_info.number_toys)]
+
+    def create_q_histograms(self, mu_excl=1, max_bin_value=-1):
+        self.calculate_profile_L_objects(mu_excl)
+        if max_bin_value == -1:
+            max_bin_q0h0 = self.search_maximum_value_q('q0h0')
+            max_bin_q0h1 = self.search_maximum_value_q('q0h1')
+            max_bin_qeh0 = self.search_maximum_value_q('qeh0')
+            max_bin_qeh1 = self.search_maximum_value_q('qeh1')
+            max0 = amax([max_bin_q0h0, max_bin_q0h1])
+            maxe = amax([max_bin_qeh0, max_bin_qeh1])
+
+        else:
+            max0 = max_bin_value
+            maxe = max_bin_value
+        nbins = self.analyze_info.bins_q_histos
+        h0_lim_inf = 0-float(max0)/float(2*nbins)
+        h0_lim_sup = max0 + float(max0)/float(2*nbins)
+        he_lim_inf = 0 - float(maxe) / float(2 * nbins)
+        he_lim_sup = maxe + float(maxe) / float(2 * nbins)
+        hq0h0 = TH1F('q0h0', 'q0_H0', nbins + 1, h0_lim_inf, h0_lim_sup)
+        hq0h0.SetLineColor(TColor.kRed)
+        hq0h0.SetBinErrorOption(TH1F.kPoisson)
+        hq0h0.SetStats(kFALSE)
+        hq0h1 = TH1F('q0h1', 'q0_H1', nbins + 1, h0_lim_inf, h0_lim_sup)
+        hq0h1.SetLineColor(TColor.kBlue)
+        hq0h1.SetBinErrorOption(TH1F.kPoisson)
+        hq0h1.SetStats(kFALSE)
+        hqeh0 = TH1F('qeh0', 'qu_H0', nbins + 1, he_lim_inf, he_lim_sup)
+        hqeh0.SetLineColor(TColor.kRed)
+        hqeh0.SetBinErrorOption(TH1F.kPoisson)
+        hqeh0.SetStats(kFALSE)
+        hqeh1 = TH1F('qeh1', 'qu_H1', nbins + 1, he_lim_inf, he_lim_sup)
+        hqeh1.SetLineColor(TColor.kBlue)
+        hqeh1.SetBinErrorOption(TH1F.kPoisson)
+        hqeh1.SetStats(kFALSE)
+        for i in xrange(self.analyze_info.number_toys):
+            hq0h0.Fill(self.profile_likelihoods_list[i].q0_bkg)
+            hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
+            hqeh0.Fill(self.profile_likelihoods_list[i].qe_bkg)
+            hqeh1.Fill(self.profile_likelihoods_list[i].qe_sgnbkg)
+        c1 = TCanvas('q0', 'q0', 1)
+        c2 = TCanvas('qu', 'qu', 1)
+        c1.cd()
+        hq0h0.Draw()
+        hq0h0.Draw('E SAME')
+        hq0h1.Draw('SAME')
+        hq0h1.Draw('E SAME')
+        c1.BuildLegend()
+        c1.SetLogy()
+        c1.SaveAs('q0.png')
+        c2.cd()
+        hqeh0.Draw()
+        hqeh0.Draw('E SAME')
+        hqeh1.Draw('SAME')
+        hqeh1.Draw('E SAME')
+        c2.BuildLegend()
+        c2.SetLogy()
+        c2.SaveAs('qu.png')
+        c1.Destructor()
+        c2.Destructor()
+
+    def search_maximum_value_q(self, variable):
+        max = 0
+        for i in xrange(self.analyze_info.number_toys):
+            if variable == 'q0h0':
+                value = self.profile_likelihoods_list[i].q0_bkg
+            elif variable == 'q0h1':
+                value = self.profile_likelihoods_list[i].q0_sgnbkg
+            elif variable == 'qeh0':
+                value = self.profile_likelihoods_list[i].qe_bkg
+            else:
+                value = self.profile_likelihoods_list[i].qe_sgnbkg
+            if value > max:
+                max = value
+        return max
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
