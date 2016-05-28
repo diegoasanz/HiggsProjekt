@@ -38,7 +38,7 @@ class ToyExperimentGen:
         ## self.functionB = {binN: TGraphErrors(self.numBins, self.bkg.GetBinCenter(binN), self.get_k(self.cdf_generator(self.bkg)[0], random, self.cdf_generator(self.bkg)[1]), self.widthBin, self.bkg.SetBinErrorOption(TH1F.kPoisson)) for binN in xrange(1, self.numBins+1, 1)}
 
     def __del__(self):
-        print 'Deleting', self
+        # print 'Deleting', self
 
     def generate_toy_bins(self):
         for bin_i in xrange(1, self.numBins+1):

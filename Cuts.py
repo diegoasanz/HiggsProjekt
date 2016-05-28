@@ -45,4 +45,4 @@ class Cuts:
         return word
 
     def __del__(self):
-        print 'Deleting', self
+        # print 'Deleting', self

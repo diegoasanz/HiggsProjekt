@@ -85,7 +85,7 @@ class ProfileL:
         self.Ze_sgnbkg = TMath.Sqrt(self.qe_sgnbkg)
 
     def __del__(self):
-        print 'Deleting', self
+        # print 'Deleting', self
 
     def nll_value(self, npar, par):
         '''

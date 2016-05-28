@@ -426,8 +426,8 @@ class AnalyzeInfo:
 
         self.monte_carlo_to_analyse = '85'
         self.test_statistics_branch = 'mvis'
-        self.number_toys = 1000
+        self.number_toys = 100
         self.bins_q_histos = 100
 
     def __del__(self):
-        print 'Deleting', self
+        # print 'Deleting', self
