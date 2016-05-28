@@ -15,8 +15,8 @@ from Utils import *
 
 
 class Cuts:
-    def __init__(self):
-        self.analyze_info = AnalyzeInfo()
+    def __init__(self, analyzeInfo):
+        self.analyze_info = analyzeInfo
         self.cuts_words = {'85': self.getCutWord('85'), '90': self.getCutWord('90'), '95': self.getCutWord('95')}
 
     def getCutWord(self, mcname):

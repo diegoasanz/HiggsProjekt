@@ -16,10 +16,10 @@ __author__ = 'Pin-Jung & Diego Alejandro'
 from Utils import *
 
 class ToyExperimentGen:
-    def __init__(self, histo, branchName, randomgen, num, name):
+    def __init__(self, analyzeInfo, histo, branchName, randomgen, num, name):
         self.random = randomgen
         self.input_histo = histo
-        self.analyze_info = AnalyzeInfo()
+        self.analyze_info = analyzeInfo
         self.number = num
         self.numBins = int(self.analyze_info.branch_numbins[branchName] + 1)
         self.maxBin = self.analyze_info.branch_max[branchName]+float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
