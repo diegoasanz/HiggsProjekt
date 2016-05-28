@@ -13,7 +13,15 @@ class ProfileL:
     def __init__(self):
         self.branch_info = BranchInfo()
 
-    def fit_mu(self,toy, background, signal):
+    def fit_mu(self, toy, background, signal):
+        b = {i: background.GetBinContent(i) for i in xrange(1, background.GetNBinsX()+1)}
+        s = {i: signal.GetBinContent(i) for i in xrange(1, background.GetNBinsX()+1)}
+
+        def myFunc(u, i):
+            return u * s[i] + b[i]
+        
+        pdf = TF1("pdf", "myFunc(u)", 0, 1)
+        toy.Fit(pdf)
 
 
     def qValue(self, toy, histogram_num, histogram_den, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
@@ -33,20 +41,20 @@ class ProfileL:
         # self.data_value = {binN: data_histos[higgsName][branchName]. GetBinContent for binN in xrange(self.numBins)}
         # self.mc_value = {binN: self.pdf.functionSB[binN] for binN in xrange(self.numBins)}
 
-    def poisson(self, ):
-        s = self.sig_value[binN]
-        b = self.bkg_value[binN]
-        mc = self.mc_value[binN]
-        pdf = TF1("pdf", "TMath.Poisson(u * s + b, mc)", 0, 1)
-        return deepcopy(pdf)
-
-    def likelihood(self):
-        L = 1
-        for binN in xrange(1, self.numBins+1, 1):
-            L * self.poisson(binN)
-        return L
-
-    def max_likelihood(self, L):
-        for u in xrange(0, 1, 0.001):
-            if L(u+1) - L(u) == 0:
-                return u
+    # def poisson(self, ):
+    #     s = self.sig_value[binN]
+    #     b = self.bkg_value[binN]
+    #     mc = self.mc_value[binN]
+    #     pdf = TF1("pdf", "TMath.Poisson(u * s + b, mc)", 0, 1)
+    #     return deepcopy(pdf)
+    #
+    # def likelihood(self):
+    #     L = 1
+    #     for binN in xrange(1, self.numBins+1, 1):
+    #         L * self.poisson(binN)
+    #     return L
+    #
+    # def max_likelihood(self, L):
+    #     for u in xrange(0, 1, 0.001):
+    #         if L(u+1) - L(u) == 0:
+    #             return u
