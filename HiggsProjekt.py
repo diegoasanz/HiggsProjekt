@@ -9,6 +9,7 @@ from copy import deepcopy
 from DataTree import *
 from AnalyzeInfo import *
 from ToyExperimentGen import *
+from ProfileL import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 

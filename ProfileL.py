@@ -3,26 +3,72 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TH1F, TMath, RooStats, TF1
-from PDFGenerator import *
-from BranchInfo import *
-
+from ROOT import TH1F, TMath, RooStats, TF1, TMinuit, Double, Long
+from ToyExperimentGen import *
+from AnalyzeInfo import *
+from array import array
+from Utils import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 class ProfileL:
-    def __init__(self):
-        self.branch_info = BranchInfo()
+    def __init__(self, toy, background, signal):
+        self.branch_info = AnalyzeInfo()
+        self.num_bins = self.branch_info.branch_numbins[self.branch_info.test_statistics_branch]
+        self.toy = toy
+        self.background = background
+        self.signal = signal
+        self.nll = Double(0)
+        self.npar = 1
+        self.start_value_mu = 0.5
+        self.init_step_mu = 0.001
+        self.max_iterations = 1000
+        self.tolerance = 3
+        self.min_mu = -1
+        self.max_mu = 10
+        self.mu = self.fit_mu(self.toy, self.background, self.signal)
 
-    def fit_mu(self, toy, background, signal):
-        b = {i: background.GetBinContent(i) for i in xrange(1, background.GetNBinsX()+1)}
-        s = {i: signal.GetBinContent(i) for i in xrange(1, background.GetNBinsX()+1)}
+    def nll_value(self, npar, par):
+        '''
 
-        def myFunc(u, i):
-            return u * s[i] + b[i]
-        
-        pdf = TF1("pdf", "myFunc(u)", 0, 1)
-        toy.Fit(pdf)
+        :param npar: number of parameters, should be 1
+        :param par: value of "mu", should be handed as a list of one element. e.g. nll_value(1,[0.5])
+        :return: the value of the negative log-likelihood
+        '''
+        self.nll = Double(0)
+        for bin in xrange(1, self.num_bins + 1):
+            b = self.background.GetBinContent(bin)
+            s = self.signal.GetBinContent(bin)
+            t = self.toy.GetBinContent(bin)
+            f = (-2)*TMath.Log(TMath.Poisson(t,b + par[0]*s))
+            self.nll += f
+        return self.nll
 
+    def fcn(self, npar, deriv, f, apar, iflag):
+        f[0] = self.nll_value(npar, apar)
+
+    def fit_mu(self,toy, background, signal):
+        myMinuit = TMinuit(self.npar)
+        myMinuit.SetFCN(self.fcn)
+        ierflg = Long(0)
+        myMinuit.mnparm(0, 'mu', self.start_value_mu, self.init_step_mu, self.min_mu, self.max_mu, ierflg)
+        arglist = array('d', (0, 0))
+        arglist[0] = self.max_iterations
+        arglist[1] = self.tolerance
+        myMinuit.mnexcm("MIGRAD", arglist, 2, ierflg)
+        # check TMinuit status
+        amin, edm, errdef = Double(0.), Double(0.), Double(0.)
+        nvpar, nparx, icstat = Long(0), Long(0), Long(0)
+        myMinuit.mnstat(amin, edm, errdef, nvpar, nparx, icstat)
+        # get final results
+        p, pe = Double(0), Double(0)
+        myMinuit.GetParameter(0, p, pe)
+        finalPar = float(p)
+        finalParErr = float(pe)
+        print_banner('MINUIT fit completed:')
+        print ' fcn@minimum = %.3g' %(amin)," error code =", ierflg, " status =", icstat
+        print " Results: \t value error"
+        print ' %s: \t%10.3e +/- %.1e '%('mu', finalPar, finalParErr)
+        return p
 
     def qValue(self, toy, histogram_num, histogram_den, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
         numBins = self.branch_info.number_toys
