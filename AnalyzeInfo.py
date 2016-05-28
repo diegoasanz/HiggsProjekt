@@ -426,4 +426,4 @@ class AnalyzeInfo:
 
         self.monte_carlo_to_analyse = '85'
         self.test_statistics_branch = 'mvis'
-        self.number_toys = 100
+        self.number_toys = 5
