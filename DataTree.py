@@ -6,7 +6,7 @@
 from ROOT import TFile, AddressOf, TTree, TH1F, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kFALSE, kTRUE
 from glob import glob
 from copy import deepcopy
-from BranchInfo import *
+from AnalyzeInfo import *
 from array import array
 from Cuts import *
 from ToyExperimentGen import *
@@ -33,7 +33,7 @@ class DataTree:
             self.luminosity = float(self.number_events / self.cross_section)
             self.scaling_factor = float(176.773 / self.luminosity)
         #self.CreateBranchInvariantMass() # Create branch of invariant mass
-        self.branches_info = BranchInfo()
+        self.branches_info = AnalyzeInfo()
         self.cuts = Cuts()
         self.cuts_words = self.cuts.cuts_words
         self.branches_histograms = {branch: self.GetBranchHistogram(branch, self.branches_info.branch_numbins[branch], self.branches_info.branch_min[branch], self.branches_info.branch_max[branch]) for branch in self.branches_info.branch_names}
