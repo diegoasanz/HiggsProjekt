@@ -33,23 +33,23 @@ class DataTree:
             self.luminosity = float(self.number_events / self.cross_section)
             self.scaling_factor = float(176.773 / self.luminosity)
         #self.CreateBranchInvariantMass() # Create branch of invariant mass
-        self.branches_info = AnalyzeInfo()
+        self.analyze_info = AnalyzeInfo()
         self.cuts = Cuts()
         self.cuts_words = self.cuts.cuts_words
-        self.branches_histograms = {branch: self.GetBranchHistogram(branch, self.branches_info.branch_numbins[branch], self.branches_info.branch_min[branch], self.branches_info.branch_max[branch]) for branch in self.branches_info.branch_names}
+        self.branches_histograms = {branch: self.GetBranchHistogram(branch, self.analyze_info.branch_numbins[branch], self.analyze_info.branch_min[branch], self.analyze_info.branch_max[branch]) for branch in self.analyze_info.branch_names}
         self.branches_histogram_no_norm = deepcopy(self.branches_histograms)
-        for branch in self.branches_info.branch_names:
+        for branch in self.analyze_info.branch_names:
             self.branches_histogram_no_norm[branch].Scale(float(1)/self.scaling_factor)
         if name != 'data':
             if name == '85' or name == '90' or name == '95':
-                self.toys = self.generate_toy_experiments('signal_'+name, self.branches_info.test_statistics_branch, self.branches_info.number_toys)
+                self.toys = self.generate_toy_experiments('signal_'+name, self.analyze_info.test_statistics_branch, self.analyze_info.number_toys)
             else:
-                self.toys = self.generate_toy_experiments('background_'+name, self.branches_info.test_statistics_branch, self.branches_info.number_toys)
+                self.toys = self.generate_toy_experiments('background_'+name, self.analyze_info.test_statistics_branch, self.analyze_info.number_toys)
 
 
     def GetBranchHistogram(self, branchname, nbins_histo, min_histo, max_histo):
         histogram_name = branchname + '_' + self.tree_name
-        cutword = self.cuts_words[self.branches_info.monte_carlo_to_analyse]
+        cutword = self.cuts_words[self.analyze_info.monte_carlo_to_analyse]
         histogram = TH1F(histogram_name, histogram_name, int(nbins_histo + 1), float(min_histo - float(max_histo - min_histo) / float(2 * nbins_histo)), float(max_histo + float(max_histo - min_histo) / float(2 * nbins_histo)))
         histogram.SetBinErrorOption(TH1F.kPoisson)
         histogram.SetStats(kFALSE)
@@ -63,7 +63,7 @@ class DataTree:
         branch = 0
         for i in xrange(self.entries):
             self.tree.GetEntry(i)
-            exec('branch = self.tree.'+branchname)
+            exec('branch = self.tree.'+ branchname)
             histogram.Fill(branch)
         return deepcopy(histogram)
 
@@ -91,6 +91,6 @@ class DataTree:
     #         branchIM.Fill() # save the content of the branch
 
     def generate_toy_experiments(self, type, branchname, num):
-        name = type + '_' +branchname
+        name = type + '_' + branchname
         histo = self.branches_histogram_no_norm[branchname]
         return {i: ToyExperimentGen(histo, branchname, self.rand, i, name).toy for i in xrange(num)}

@@ -20,7 +20,7 @@ class ToyExperimentGen:
         self.random = randomgen
         self.input_histo = histo
         self.analyze_info = AnalyzeInfo()
-        self.number = num
+        # self.number = num
         self.numBins = int(self.analyze_info.branch_numbins[branchName] + 1)
         self.maxBin = self.analyze_info.branch_max[branchName]+float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
         self.minBin = self.analyze_info.branch_min[branchName]-float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])

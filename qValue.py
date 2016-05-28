@@ -10,7 +10,7 @@ from AnalyzeInfo import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 class qValue:
-    def __init__(self, toy, histogrammu1, histogrammu2, sig_bkg_histos, sig_histos, bkg_histos, data_histos):
+    def __init__(self, toy, histogrammu1, histogrammu2):  # sig_bkg_histos, sig_histos, bkg_histos, data_histos)
         self.analyze_info = AnalyzeInfo()
         self.numBins = self.analyze_info.number_toys
         self.auxiliary_histo = TH1F('h1', 'h1', self.numBins, 0, self.numBins)
