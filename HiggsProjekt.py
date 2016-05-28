@@ -7,7 +7,7 @@ from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, Roo
 from glob import glob
 from copy import deepcopy
 from DataTree import *
-from BranchInfo import *
+from AnalyzeInfo import *
 from ToyExperimentGen import *
 
 __author__ = 'Pin-Jung & Diego Alejandro'
@@ -46,19 +46,19 @@ class Analysis:
         self.random = TRandom3(123654)
         self.data_data_tree = DataTree(self.data_tree, 'data', -1, -1, self.random)
         print_banner('Loading branches information and settings...', '%')
-        self.branch_info = BranchInfo()
-        self.branch_names = self.branch_info.branch_names
-        self.branch_numbins = self.branch_info.branch_numbins
-        self.branch_mins = self.branch_info.branch_min
-        self.branch_maxs = self.branch_info.branch_max
+        self.analyze_info = AnalyzeInfo()
+        self.branch_names = self.analyze_info.branch_names
+        self.branch_numbins = self.analyze_info.branch_numbins
+        self.branch_mins = self.analyze_info.branch_min
+        self.branch_maxs = self.analyze_info.branch_max
         print_banner('Totaling the histograms of the backgrounds for each branch...', '%')
         self.background_data_trees = self.create_background_data_trees()
         self.total_background_histograms_dict = self.totalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        self.total_background_toy_histograms_dict = self.totalToyBackgrounds(self.background_names, self.background_data_trees, self.branch_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.total_background_toy_histograms_dict = self.totalToyBackgrounds(self.background_names, self.background_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
         print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
@@ -108,7 +108,7 @@ class Analysis:
         return deepcopy(total_background_histograms_dict)
 
     def totalToyBackgrounds(self, names, data_trees, branch, branches_nbins, branches_mins, branches_maxs):
-        total_toy_background_histogram = {i: self.accumulateToyHistogram(names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch], i) for i in xrange(self.branch_info.number_toys)}
+        total_toy_background_histogram = {i: self.accumulateToyHistogram(names, data_trees, branch, branches_nbins[branch], branches_mins[branch], branches_maxs[branch], i) for i in xrange(self.analyze_info.number_toys)}
         return deepcopy(total_toy_background_histogram)
 
 
@@ -144,9 +144,9 @@ class Analysis:
         return deepcopy(mc_histograms_dict)
 
     def monteCarloToyHistograms(self, names, data_trees, branch,  branches_nbins, branches_mins, branches_maxs):
-        mc_toy_histogram_dict = {name: {i: data_trees[name].toys[i] for i in xrange(self.branch_info.number_toys)} for name in names}
+        mc_toy_histogram_dict = {name: {i: data_trees[name].toys[i] for i in xrange(self.analyze_info.number_toys)} for name in names}
         for name in names:
-            for num in xrange(self.branch_info.number_toys):
+            for num in xrange(self.analyze_info.number_toys):
                 mc_toy_histogram_dict[name][num].SetBinErrorOption(TH1F.kPoisson)
                 mc_toy_histogram_dict[name][num].Scale(data_trees[name].scaling_factor)
         return deepcopy(mc_toy_histogram_dict)
@@ -203,9 +203,9 @@ class Analysis:
         self.stuff.append(s1)
 
     def purity(self, branchname):
-        if self.branch_info.monte_carlo_to_analyse == '85':
+        if self.analyze_info.monte_carlo_to_analyse == '85':
             signal = self.mc_histograms_dict['85'][branchname].Integral()
-        elif self.branch_info.monte_carlo_to_analyse == '90':
+        elif self.analyze_info.monte_carlo_to_analyse == '90':
             signal = self.mc_histograms_dict['90'][branchname].Integral()
         else:
             signal = self.mc_histograms_dict['95'][branchname].Integral()
@@ -218,12 +218,12 @@ class Analysis:
         return float(signal/TMath.Sqrt(background))
 
     def integral_signal(self, branchname):
-        return self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname].Integral()
+        return self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname].Integral()
 
     def generate_toy_experiments(self, type, branchname, num):
         name = type + '_' + branchname
         if type == 'signal':
-            histo = self.mc_histograms_dict[self.branch_info.monte_carlo_to_analyse][branchname]
+            histo = self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname]
         else:
             histo = self.total_background_histograms_dict[branchname]
         return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}

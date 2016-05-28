@@ -11,7 +11,7 @@ from copy import deepcopy
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
-class BranchInfo:
+class AnalyzeInfo:
     def __init__(self):
         # branches names:
         self.branch_names = []

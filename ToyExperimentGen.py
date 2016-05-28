@@ -7,7 +7,7 @@ from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, TH1F, TGrap
 from glob import glob
 from copy import deepcopy
 from DataTree import *
-from BranchInfo import *
+from AnalyzeInfo import *
 from math import factorial, exp, log
 from numpy import *
 
@@ -19,11 +19,11 @@ class ToyExperimentGen:
     def __init__(self, histo, branchName, randomgen, num, name):
         self.random = randomgen
         self.input_histo = histo
-        self.branch_info = BranchInfo()
+        self.analyze_info = AnalyzeInfo()
         self.number = num
-        self.numBins = int(self.branch_info.branch_numbins[branchName] + 1)
-        self.maxBin = self.branch_info.branch_max[branchName]+float(self.branch_info.branch_max[branchName]-self.branch_info.branch_min[branchName])/float(2 * self.branch_info.branch_numbins[branchName])
-        self.minBin = self.branch_info.branch_min[branchName]-float(self.branch_info.branch_max[branchName]-self.branch_info.branch_min[branchName])/float(2 * self.branch_info.branch_numbins[branchName])
+        self.numBins = int(self.analyze_info.branch_numbins[branchName] + 1)
+        self.maxBin = self.analyze_info.branch_max[branchName]+float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
+        self.minBin = self.analyze_info.branch_min[branchName]-float(self.analyze_info.branch_max[branchName]-self.analyze_info.branch_min[branchName])/float(2 * self.analyze_info.branch_numbins[branchName])
         self.widthBin = float((self.maxBin - self.minBin)/self.numBins)
         self.toy = TH1F(name+'_'+str(num), name+'_'+str(num), self.numBins, self.minBin, self.maxBin)
         self.generate_toy_bins()
@@ -43,12 +43,12 @@ class ToyExperimentGen:
             value = self.get_k(cdf, self.random)
             self.toy.SetBinContent(bin_i, value)
 
-    def cdf_generator(self, histo, bin):
-        mean = histo.GetBinContent(bin)
+    def cdf_generator(self, histo, binN):
+        mean = histo.GetBinContent(binN)
         sdev = TMath.Sqrt(mean)
-        maxK = mean + 4 * sdev# mean + 4 * mean
-        ks = linspace(0,maxK,101)# xrange(maxK)# [k for k in xrange(maxK)]
-        cdf = {pos: [ks[pos], Math.inc_gamma_c(ks[pos]+1, mean)] for pos in xrange(len(ks))} # dictionary wich contains the x and y info of the cdf in a list of two elements. e.g. cdf[1] -> [0, 0].
+        maxK = mean + 4 * sdev  # mean + 4 * mean
+        ks = linspace(0, maxK, 101)  # xrange(maxK)# [k for k in xrange(maxK)]
+        cdf = {pos: [ks[pos], Math.inc_gamma_c(ks[pos]+1, mean)] for pos in xrange(len(ks))}  # dictionary wich contains the x and y info of the cdf in a list of two elements. e.g. cdf[1] -> [0, 0].
         return deepcopy(cdf)
 
     def get_k(self, cdf, rnd):
@@ -97,7 +97,4 @@ class ToyExperimentGen:
     #     trial_list = []
     #     for trial in xrange(0, num_trials):
     #         q = self.log_likelihood_ratio(TMath.PoissonI(mean))
-    def generate_trial(self, num_trials, mean):
-        trial_list = []
-        for trial in xrange(0, num_trials):
-            q = self.log_likelihood_ratio(TMath.PoissonI(mean))
+
