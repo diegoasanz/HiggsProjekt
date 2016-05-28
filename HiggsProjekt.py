@@ -255,6 +255,7 @@ class Analysis:
             max0 = max_bin_value
             maxe = max_bin_value
         nbins = self.analyze_info.bins_q_histos
+        numtoys = self.analyze_info.number_toys
         h0_lim_inf = 0-float(max0)/float(2*nbins)
         h0_lim_sup = max0 + float(max0)/float(2*nbins)
         he_lim_inf = 0 - float(maxe) / float(2 * nbins)
@@ -263,18 +264,22 @@ class Analysis:
         hq0h0.SetLineColor(TColor.kRed)
         hq0h0.SetBinErrorOption(TH1F.kPoisson)
         hq0h0.SetStats(kFALSE)
+        hq0h0.SetMaximum(numtoys)
         hq0h1 = TH1F('q0h1', 'q0_H1', nbins + 1, h0_lim_inf, h0_lim_sup)
         hq0h1.SetLineColor(TColor.kBlue)
         hq0h1.SetBinErrorOption(TH1F.kPoisson)
         hq0h1.SetStats(kFALSE)
+        hq0h0.SetMaximum(numtoys)
         hqeh0 = TH1F('qeh0', 'qu_H0', nbins + 1, he_lim_inf, he_lim_sup)
         hqeh0.SetLineColor(TColor.kRed)
         hqeh0.SetBinErrorOption(TH1F.kPoisson)
         hqeh0.SetStats(kFALSE)
+        hq0h0.SetMaximum(numtoys)
         hqeh1 = TH1F('qeh1', 'qu_H1', nbins + 1, he_lim_inf, he_lim_sup)
         hqeh1.SetLineColor(TColor.kBlue)
         hqeh1.SetBinErrorOption(TH1F.kPoisson)
         hqeh1.SetStats(kFALSE)
+        hq0h0.SetMaximum(numtoys)
         for i in xrange(self.analyze_info.number_toys):
             hq0h0.Fill(self.profile_likelihoods_list[i].q0_bkg)
             hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
