@@ -60,6 +60,7 @@ class Analysis:
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
+        self.profile_likelihoods_list = []
         self.stuff = []
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
@@ -228,6 +229,13 @@ class Analysis:
         else:
             histo = self.total_background_histograms_dict[branchname]
         return {i: ToyExperimentGen(histo, branchname, self.random, i, name) for i in xrange(num)}
+
+    def calculate_profile_L_objects(self, mu_excl=1):
+        self.profile_likelihoods_list=[ProfileL(self.total_background_toy_histograms_dict[i],
+                                                self.mc_toy_histograms_dict[self.analyze_info.monte_carlo_to_analyse][i],
+                                                self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
+                                                self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.analyze_info.test_statistics_branch],
+                                                mu_excl) for i in xrange(self.analyze_info.number_toys)]
 
 
 # This is the main that it is called if you start the python script
