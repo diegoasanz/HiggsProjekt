@@ -119,10 +119,10 @@ class ProfileL:
         # get final results
         p, pe = Double(0), Double(0)
         myMinuit.GetParameter(0, p, pe)
-        finalPar = float(p)
-        finalParErr = float(pe)
-        print_banner('MINUIT fit completed:')
-        print ' fcn@minimum = %.3g' %(amin)," error code =", ierflg, " status =", icstat
-        print " Results: \t value error"
-        print ' %s: \t%10.3e +/- %.1e '%('mu', finalPar, finalParErr)
+        # finalPar = float(p)
+        # finalParErr = float(pe)
+        # print_banner('MINUIT fit completed:')
+        # print ' fcn@minimum = %.3g' %(amin)," error code =", ierflg, " status =", icstat
+        # print " Results: \t value error"
+        # print ' %s: \t%10.3e +/- %.1e '%('mu', finalPar, finalParErr)
         return p
