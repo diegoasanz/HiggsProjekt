@@ -43,6 +43,3 @@ class Cuts:
             else:
                 word = word + '&&' + branchname + '>' + str(self.analyze_info.branch_95_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_95_highcut[branchname])
         return word
-
-    def __del__(self):
-        # print 'Deleting', self

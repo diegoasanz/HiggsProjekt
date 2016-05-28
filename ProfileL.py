@@ -84,9 +84,6 @@ class ProfileL:
         self.qe_sgnbkg = self.nll_qe_mu_sgnbkg_num - self.nll_qe_mu_sgnbkg_den
         self.Ze_sgnbkg = TMath.Sqrt(self.qe_sgnbkg)
 
-    def __del__(self):
-        # print 'Deleting', self
-
     def nll_value(self, npar, par):
         '''
         :param npar: number of parameters, should be 1
