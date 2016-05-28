@@ -11,8 +11,8 @@ from Utils import *
 __author__ = 'Pin-Jung & Diego Alejandro'
 
 class ProfileL:
-    def __init__(self, toy_background, toy_signal, background, signal, exclusion_mu=1):
-        self.branch_info = AnalyzeInfo()
+    def __init__(self, analyzeInfo, toy_background, toy_signal, background, signal, exclusion_mu=1):
+        self.branch_info = analyzeInfo
         self.num_bins = self.branch_info.branch_numbins[self.branch_info.test_statistics_branch]
         self.toy_bkg = toy_background
         self.toy_sgn = toy_signal
