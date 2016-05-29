@@ -84,8 +84,8 @@ class CutsScan:
 
     def make_analysis(self):
         print_banner('Filling histograms with data...', '-')
-        for cutx in linspace(self.low_cut_ini, self.high_cut_ini, int(self.numdiv+1)):
-            for cuty in linspace(self.high_cut_ini, self.low_cut_ini, int(self.numdiv+1)):
+        for cutx in linspace(self.low_cut_ini, self.low_cut_end, int(self.numdiv+1)):
+            for cuty in linspace(self.high_cut_ini, self.high_cut_end, int(self.numdiv+1)):
                 if cuty > cutx:
                     self.make_cuts(cutx, cuty)
 
@@ -96,9 +96,10 @@ class CutsScan:
         self.analyze_info.change_cut_high(self.branch_cut, y)
         self.analysis = Analysis(self.analyze_info)
         self.s = Double(self.analysis.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.teststat].Integral())
-        delta = float(linspace(self.low_cut_ini, self.high_cut_ini, int(self.numdiv+1))[1] - linspace(self.low_cut_ini, self.high_cut_ini, int(self.numdiv+1))[0])
-        binx = int(float(x - self.low_cut_ini)/delta + 1)
-        biny = int(float(y - self.high_cut_end)/delta + 1)
+        deltax = float(linspace(self.low_cut_ini, self.low_cut_end, int(self.numdiv+1))[1] - linspace(self.low_cut_ini, self.low_cut_end, int(self.numdiv+1))[0])
+        deltay = float(linspace(self.high_cut_end, self.high_cut_ini, int(self.numdiv + 1))[1] -linspace(self.high_cut_end, self.high_cut_ini, int(self.numdiv + 1))[0])
+        binx = int(float(x - self.low_cut_ini)/deltax + 1)
+        biny = int(float(y - self.high_cut_end)/deltay + 1)
         self.h_eff.SetBinContent(binx, biny, float(self.s/self.s_ini))
         self.h_purity.SetBinContent(binx, biny, float(self.analysis.purity(self.teststat)))
         self.h_signif.SetBinContent(binx, biny, float(self.analysis.significance(self.teststat)))
