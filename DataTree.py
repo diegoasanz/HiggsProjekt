@@ -41,7 +41,7 @@ class DataTree:
                                                                     self.branches_info.branch_max[branch])
                                     for branch in self.branches_info.branch_names}
         self.branches_histogram_no_norm = deepcopy(self.branches_histograms)
-        for branch in self.analyze_info.branch_names:
+        for branch in self.branches_info.branch_names:
             self.branches_histogram_no_norm[branch].Scale(float(1)/self.scaling_factor)
         if name != 'data':
             if name == '85' or name == '90' or name == '95':
@@ -53,7 +53,7 @@ class DataTree:
 
     def GetBranchHistogram(self, branchname, nbins_histo, min_histo, max_histo):
         histogram_name = branchname + '_' + self.tree_name
-        cutword = self.cuts_words[self.analyze_info.monte_carlo_to_analyse]
+        cutword = self.cuts_words[self.branches_info.monte_carlo_to_analyse]
         histogram = TH1F(histogram_name, histogram_name, int(nbins_histo + 1), float(min_histo - float(max_histo - min_histo) / float(2 * nbins_histo)), float(max_histo + float(max_histo - min_histo) / float(2 * nbins_histo)))
         histogram.SetBinErrorOption(TH1F.kPoisson)
         histogram.SetStats(kFALSE)
