@@ -37,6 +37,10 @@ class CutsScan:
         self.start_analysis('90')
         self.make_analysis()
         self.save_histograms('90')
+        print_banner('STARTING WITH HIGGS 95', '%')
+        self.start_analysis('95')
+        self.make_analysis()
+        self.save_histograms('95')
 
     def start_analysis(self, mh='85'):
         self.analyze_info.change_montecarlo_to_analyse(mh)
@@ -124,9 +128,11 @@ if __name__ == '__main__':
     for branch in ana.branch_names:
         if (branch != 'ievt') or (branch != 'irun') or (branch != 'mvis') or (branch != 'mivissc'):
             teststat = 'mvis'
+            print_banner('Running: {test} with branch {bra}'.format(test = teststat, bra = branch),'=')
             w = CutsScan(teststat, branch)
             del w
             teststat = 'mvissc'
+            print_banner('Running: {test} with branch {bra}'.format(test=teststat, bra=branch), '=')
             w = CutsScan(teststat, branch)
             del w
     # teststat = raw_input('Enter the name of the test statistics used: ')
