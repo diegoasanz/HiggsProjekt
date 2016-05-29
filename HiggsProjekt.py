@@ -28,6 +28,7 @@ class Analysis:
         self.DataFolder = 'l3higgs189/'
         self.analyze_info = analyzeInfo
         self.is_mute = self.analyze_info.silent_analysis
+        self.s_ini = 5.0
         # This calls the method 'load_trees' of the Analysis class, and the results are stored in the variable trees.
         # trees variable will have a dictionary with the tree name and the tree
         if not self.is_mute:
@@ -236,6 +237,9 @@ class Analysis:
 
     def integral_signal(self, branchname):
         return self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname].Integral()
+
+    def efficiency(self, branchname):
+        return float(self.integral_signal(branchname))/float(self.s_ini)
 
     def generate_toy_experiments(self, type, branchname, num):
         name = type + '_' + branchname
