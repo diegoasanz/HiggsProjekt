@@ -51,9 +51,6 @@ class DataTree:
                 self.toys = self.generate_toy_experiments('background_'+name, self.branches_info.test_statistics_branch,
                                                           self.branches_info.number_toys)
 
-    def __del__(self):
-        print 'Deleting', self
-
     def GetBranchHistogram(self, branchname, nbins_histo, min_histo, max_histo):
         histogram_name = branchname + '_' + self.tree_name
         cutword = self.cuts_words[self.branches_info.monte_carlo_to_analyse]

@@ -16,11 +16,9 @@ __author__ = 'Pin-Jung & Diego Alejandro'
 
 from Utils import *
 
-
-
 class Analysis:
     # this method is the initialization of the Analysis class. This is the constructor of the Analysis class.
-    def __init__(self):
+    def __init__(self, analyzeInfo):
         '''
         :param self: it menas that it takes itself as parameter to initialize
         :return: this method does not return anything, it is just the constructor.
@@ -28,12 +26,15 @@ class Analysis:
 
         # This is the folder name where the data is stored. Download it from the student forum page in moodle and save the data in the same path of this projekt
         self.DataFolder = 'l3higgs189/'
-
+        self.analyze_info = analyzeInfo
+        self.is_mute = self.analyze_info.silent_analysis
         # This calls the method 'load_trees' of the Analysis class, and the results are stored in the variable trees.
         # trees variable will have a dictionary with the tree name and the tree
-        print_banner('Loading names of trees...', '%')
+        if not self.is_mute:
+            print_banner('Loading names of trees...', '%')
         self.names = self.get_names_trees()
-        print_banner('Loading trees...', '%')
+        if not self.is_mute:
+            print_banner('Loading trees...', '%')
         self.trees = self.load_trees()
         self.data_name = 'data'
         self.data_tree = ''
@@ -41,23 +42,26 @@ class Analysis:
         self.background_names = []
         self.mc_higgs_trees = {}
         self.mc_higgs_names = []
-        print_banner('Organizing trees on background, data, and MC...', '%')
+        if not self.is_mute:
+            print_banner('Organizing trees on background, data, and MC...', '%')
         self.organize_trees(self.trees, self.names)
         self.cross_sections = {'eeqq': 15600, 'qq': 102, 'wen': 2.9, 'ww': 16.5, 'zee': 3.35, 'zz': 0.975, '85': 0.094, '90': 0.0667, '95': 0.0333}
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         self.random = TRandom3(123654)
-        self.analyze_info = AnalyzeInfo()
         self.data_data_tree = DataTree(self.analyze_info, self.data_tree, 'data', -1, -1, self.random)
-        print_banner('Loading branches information and settings...', '%')
+        if not self.is_mute:
+            print_banner('Loading branches information and settings...', '%')
         self.branch_names = self.analyze_info.branch_names
         self.branch_numbins = self.analyze_info.branch_numbins
         self.branch_mins = self.analyze_info.branch_min
         self.branch_maxs = self.analyze_info.branch_max
-        print_banner('Totaling the histograms of the backgrounds for each branch...', '%')
+        if not self.is_mute:
+            print_banner('Totaling the histograms of the backgrounds for each branch...', '%')
         self.background_data_trees = self.create_background_data_trees()
         self.total_background_histograms_dict = self.totalBackgrounds(self.background_names, self.background_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.total_background_toy_histograms_dict = self.totalToyBackgrounds(self.background_names, self.background_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
-        print_banner('Creating histograms for each MC...', '%')
+        if not self.is_mute:
+            print_banner('Creating histograms for each MC...', '%')
         self.mc_higgs_data_trees = self.create_mc_data_trees()
         self.mc_histograms_dict = self.monteCarloHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.branch_names, self.branch_numbins, self.branch_mins, self.branch_maxs)
         self.mc_toy_histograms_dict = self.monteCarloToyHistograms(self.mc_higgs_names, self.mc_higgs_data_trees, self.analyze_info.test_statistics_branch, self.branch_numbins, self.branch_mins, self.branch_maxs)
@@ -66,7 +70,8 @@ class Analysis:
         #   self.stack = self.stacked_histograms(self.norm_histograms[self.names], 'mmis')
 
     def __del__(self):
-        print 'Deleting', self
+        if not self.is_mute:
+            print 'Deleting', self
 
     def get_names_trees(self):
         files = glob('{dir}*.root'.format(dir=self.DataFolder))
@@ -216,12 +221,12 @@ class Analysis:
         else:
             signal = self.mc_histograms_dict['95'][branchname].Integral()
         background = self.total_background_histograms_dict[branchname].Integral()
-        return float(signal/(signal + background))
+        return float(signal)/float(signal + background+0.00000000001)
 
     def significance(self, branchname):
         signal = self.integral_signal(branchname)
         background = self.total_background_histograms_dict[branchname].Integral()
-        return float(signal/TMath.Sqrt(background))
+        return float(signal)/float(TMath.Sqrt(background+0.00000000001))
 
     def integral_signal(self, branchname):
         return self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname].Integral()
@@ -255,26 +260,35 @@ class Analysis:
             max0 = max_bin_value
             maxe = max_bin_value
         nbins = self.analyze_info.bins_q_histos
+        numtoys = self.analyze_info.number_toys
         h0_lim_inf = 0-float(max0)/float(2*nbins)
         h0_lim_sup = max0 + float(max0)/float(2*nbins)
         he_lim_inf = 0 - float(maxe) / float(2 * nbins)
         he_lim_sup = maxe + float(maxe) / float(2 * nbins)
-        hq0h0 = TH1F('q0h0', 'q0_H0', nbins + 1, h0_lim_inf, h0_lim_sup)
+        hq0h0 = TH1F('q0h0'+self.analyze_info.monte_carlo_to_analyse, 'q0_H0_'+self.analyze_info.monte_carlo_to_analyse,
+                     nbins + 1, h0_lim_inf, h0_lim_sup)
         hq0h0.SetLineColor(TColor.kRed)
         hq0h0.SetBinErrorOption(TH1F.kPoisson)
         hq0h0.SetStats(kFALSE)
-        hq0h1 = TH1F('q0h1', 'q0_H1', nbins + 1, h0_lim_inf, h0_lim_sup)
+        hq0h0.SetMaximum(numtoys)
+        hq0h1 = TH1F('q0h1'+self.analyze_info.monte_carlo_to_analyse, 'q0_H1_'+self.analyze_info.monte_carlo_to_analyse,
+                     nbins + 1, h0_lim_inf, h0_lim_sup)
         hq0h1.SetLineColor(TColor.kBlue)
         hq0h1.SetBinErrorOption(TH1F.kPoisson)
         hq0h1.SetStats(kFALSE)
-        hqeh0 = TH1F('qeh0', 'qu_H0', nbins + 1, he_lim_inf, he_lim_sup)
+        hq0h0.SetMaximum(numtoys)
+        hqeh0 = TH1F('qeh0'+self.analyze_info.monte_carlo_to_analyse, 'qu_H0_'+self.analyze_info.monte_carlo_to_analyse,
+                     nbins + 1, he_lim_inf, he_lim_sup)
         hqeh0.SetLineColor(TColor.kRed)
         hqeh0.SetBinErrorOption(TH1F.kPoisson)
         hqeh0.SetStats(kFALSE)
-        hqeh1 = TH1F('qeh1', 'qu_H1', nbins + 1, he_lim_inf, he_lim_sup)
+        hq0h0.SetMaximum(numtoys)
+        hqeh1 = TH1F('qeh1'+self.analyze_info.monte_carlo_to_analyse, 'qu_H1_'+self.analyze_info.monte_carlo_to_analyse,
+                     nbins + 1, he_lim_inf, he_lim_sup)
         hqeh1.SetLineColor(TColor.kBlue)
         hqeh1.SetBinErrorOption(TH1F.kPoisson)
         hqeh1.SetStats(kFALSE)
+        hq0h0.SetMaximum(numtoys)
         for i in xrange(self.analyze_info.number_toys):
             hq0h0.Fill(self.profile_likelihoods_list[i].q0_bkg)
             hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
@@ -289,7 +303,7 @@ class Analysis:
         hq0h1.Draw('E SAME')
         c1.BuildLegend()
         c1.SetLogy()
-        c1.SaveAs('q0.png')
+        c1.SaveAs('q0_'+self.analyze_info.monte_carlo_to_analyse+'.png')
         c2.cd()
         hqeh0.Draw()
         hqeh0.Draw('E SAME')
@@ -297,7 +311,7 @@ class Analysis:
         hqeh1.Draw('E SAME')
         c2.BuildLegend()
         c2.SetLogy()
-        c2.SaveAs('qu.png')
+        c2.SaveAs('qu_'+self.analyze_info.monte_carlo_to_analyse+'.png')
         c1.Destructor()
         c2.Destructor()
 
@@ -322,4 +336,5 @@ if __name__ == '__main__':
     # print_banner is a nice way to print the information in terminal
     print_banner('STARTING HIGGS ANALYSIS')
     # this creates an instance (object) of the Analysis class that is defined above.
-    z = Analysis()
+    y = AnalyzeInfo()
+    z = Analysis(y)

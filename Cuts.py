@@ -29,20 +29,17 @@ class Cuts:
     def appendToCutWord(self, word, branchname, mcname):
         if mcname == '85':
             if word == '':
-                word = word + branchname + '>' + str(self.analyze_info.branch_85_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_85_highcut[branchname])
+                word = word + branchname + '>=' + str(self.analyze_info.branch_85_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_85_highcut[branchname])
             else:
-                word = word + '&&' + branchname + '>' + str(self.analyze_info.branch_85_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_85_highcut[branchname])
+                word = word + '&&' + branchname + '>=' + str(self.analyze_info.branch_85_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_85_highcut[branchname])
         if mcname == '90':
             if word == '':
-                word = word + branchname + '>' + str(self.analyze_info.branch_90_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_90_highcut[branchname])
+                word = word + branchname + '>=' + str(self.analyze_info.branch_90_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_90_highcut[branchname])
             else:
-                word = word + '&&' + branchname + '>' + str(self.analyze_info.branch_90_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_90_highcut[branchname])
+                word = word + '&&' + branchname + '>=' + str(self.analyze_info.branch_90_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_90_highcut[branchname])
         if mcname == '95':
             if word == '':
-                word = word + branchname + '>' + str(self.analyze_info.branch_95_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_95_highcut[branchname])
+                word = word + branchname + '>=' + str(self.analyze_info.branch_95_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_95_highcut[branchname])
             else:
-                word = word + '&&' + branchname + '>' + str(self.analyze_info.branch_95_lowcut[branchname]) + '&&' + branchname + '<' + str(self.analyze_info.branch_95_highcut[branchname])
+                word = word + '&&' + branchname + '>=' + str(self.analyze_info.branch_95_lowcut[branchname]) + '&&' + branchname + '<=' + str(self.analyze_info.branch_95_highcut[branchname])
         return word
-
-    def __del__(self):
-        print 'Deleting', self
