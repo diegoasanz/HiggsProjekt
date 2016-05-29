@@ -149,9 +149,9 @@ if __name__ == '__main__':
     if mode == 0:
         ana = AnalyzeInfo()
         for branch in ana.branch_names:
-            if (branch != 'ievt') or (branch != 'irun') or (branch != 'mvis') or (branch != 'mivissc'):
+            if (branch != 'ievt') or (branch != 'irun') or (branch != 'mvis') or (branch != 'mvissc'):
                 teststat = 'mvis'
-                print_banner('Running: {test} with branch {bra}'.format(test = teststat, bra = branch),'=')
+                print_banner('Running: {test} with branch {bra}'.format(test=teststat, bra=branch),'=')
                 w = CutsScan(teststat, branch)
                 del w
                 teststat = 'mvissc'
