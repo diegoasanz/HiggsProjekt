@@ -390,8 +390,8 @@ class AnalyzeInfo:
         self.toggle_cuts = {}
         self.toggle_cuts['acop'] = 0
         self.toggle_cuts['acthm'] = 0
-        self.toggle_cuts['btag1'] = 1
-        self.toggle_cuts['btag2'] = 1
+        self.toggle_cuts['btag1'] = 0
+        self.toggle_cuts['btag2'] = 0
         self.toggle_cuts['ele_ene'] = 0
         self.toggle_cuts['ele_num'] = 0
         self.toggle_cuts['ele_phi'] = 0
@@ -426,5 +426,35 @@ class AnalyzeInfo:
 
         self.monte_carlo_to_analyse = '85'
         self.test_statistics_branch = 'mvis'
-        self.number_toys = 100
-        self.bins_q_histos = 100
+        self.number_toys = 0
+        self.bins_q_histos = 10
+        self.silent_analysis = 1
+
+    def change_cut_low(self, branch, value):
+        self.branch_85_lowcut[branch] = value
+        self.branch_90_lowcut[branch] = value
+        self.branch_95_lowcut[branch] = value
+
+    def change_cut_high(self, branch, value):
+        self.branch_85_highcut[branch] = value
+        self.branch_90_highcut[branch] = value
+        self.branch_95_highcut[branch] = value
+
+    def change_montecarlo_to_analyse(self, mc):
+        self.monte_carlo_to_analyse = mc
+
+    def change_test_statistics_branch(self, teststat):
+        self.test_statistics_branch = teststat
+
+    def change_toggle_cuts(self, branch, value):
+        self.toggle_cuts[branch] = value
+
+    def switch_off_all_cuts(self):
+        for branch in self.branch_names:
+            self.change_toggle_cuts(branch, 0)
+
+    def change_silent_analysis(self, value):
+        self.silent_analysis = value
+
+    def change_number_toys(self, number):
+        self.number_toys = number
