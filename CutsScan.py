@@ -12,6 +12,7 @@ from ToyExperimentGen import *
 from ProfileL import *
 from numpy import *
 from HiggsProjekt import *
+import os
 
 
 __author__ = 'Pin-Jung & Diego Alejandro'
@@ -27,11 +28,15 @@ class CutsScan:
         self.analyze_info.switch_off_all_cuts()
         self.analyze_info.change_silent_analysis(1)
         self.analyze_info.change_number_toys(0)
+        self.stuff = []
         print_banner('STARTING WITH HIGGS 85', '%')
         self.start_analysis('85')
         self.make_analysis()
         self.save_histograms('85')
-        self.stuff = []
+        print_banner('STARTING WITH HIGGS 90', '%')
+        self.start_analysis('90')
+        self.make_analysis()
+        self.save_histograms('90')
 
     def start_analysis(self, mh='85'):
         self.analyze_info.change_montecarlo_to_analyse(mh)
@@ -43,7 +48,7 @@ class CutsScan:
         self.high_cut_ini = self.analyze_info.branch_max[self.branch_cut]
         self.low_cut_end = self.high_cut_ini
         self.high_cut_end = self.low_cut_ini
-        self.numdiv = 10
+        self.numdiv = 20
         self.low_cut_step = float(self.low_cut_end - self.low_cut_ini)/float(int(self.numdiv))
         self.high_cut_step = float(self.high_cut_end - self.high_cut_ini)/float(self.numdiv)
         self.h_stam_name = mh + '_'+self.branch_cut
@@ -67,7 +72,8 @@ class CutsScan:
         print_banner('Filling histograms with data...', '-')
         for cutx in linspace(self.low_cut_ini, self.high_cut_ini, int(self.numdiv+1)):
             for cuty in linspace(self.high_cut_ini, self.low_cut_ini, int(self.numdiv+1)):
-                self.make_cuts(cutx, cuty)
+                if cuty > cutx:
+                    self.make_cuts(cutx, cuty)
 
     def make_cuts(self, x, y):
         del self.analysis
@@ -92,28 +98,37 @@ class CutsScan:
         gStyle.SetPalette(53)
         self.h_eff.SetContour(1024)
         self.h_eff.SetStats(kFALSE)
-        c0 = TCanvas('c0', 'c0', 1)
+        c0 = TCanvas('c0', 'c0', 700, 700)
         c0.cd()
         self.h_eff.Draw('colz')
         c0.SaveAs(mc+'/'+self.teststat+'/'+self.h_stam_name+'_h_eff.png')
         self.h_purity.SetContour(1024)
         self.h_purity.SetStats(kFALSE)
-        c1 = TCanvas('c1', 'c1', 1)
+        c1 = TCanvas('c1', 'c1', 700, 700)
         c1.cd()
         self.h_purity.Draw('colz')
-        c1.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_/h_purity.png')
+        c1.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_h_purity.png')
         self.h_signif.SetContour(1024)
         self.h_signif.SetStats(kFALSE)
-        c2 = TCanvas('c2', 'c2', 1)
+        c2 = TCanvas('c2', 'c2', 700, 700)
         c2.cd()
         self.h_signif.Draw('colz')
-        c2.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_/h_signif.png')
-        self.stuff.append(c0)
-        self.stuff.append(c1)
-        self.stuff.append(c2)
+        c2.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_h_signif.png')
+        # self.stuff.append(c0)
+        # self.stuff.append(c1)
+        # self.stuff.append(c2)
 
 if __name__ == '__main__':
     print_banner('STARTING HIGGS CUTS ANALYSIS', '#')
-    teststat = raw_input('Enter the name of the test statistics used: ')
-    branch = raw_input('Enter the name of the branch to study its cuts: ')
-    w = CutsScan(teststat, branch)
+    ana = AnalyzeInfo()
+    for branch in ana.branch_names:
+        if (branch != 'ievt') or (branch != 'irun') or (branch != 'mvis') or (branch != 'mivissc'):
+            teststat = 'mvis'
+            w = CutsScan(teststat, branch)
+            del w
+            teststat = 'mvissc'
+            w = CutsScan(teststat, branch)
+            del w
+    # teststat = raw_input('Enter the name of the test statistics used: ')
+    # branch = raw_input('Enter the name of the branch to study its cuts: ')
+    # w = CutsScan(teststat, branch)

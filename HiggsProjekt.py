@@ -221,12 +221,18 @@ class Analysis:
         else:
             signal = self.mc_histograms_dict['95'][branchname].Integral()
         background = self.total_background_histograms_dict[branchname].Integral()
-        return float(signal)/float(signal + background+0.00000000001)
+        if float(signal+background) == float(0):
+            return 0
+        else:
+            return float(signal)/float(signal + background+0.00000000001)
 
     def significance(self, branchname):
         signal = self.integral_signal(branchname)
         background = self.total_background_histograms_dict[branchname].Integral()
-        return float(signal)/float(TMath.Sqrt(background+0.00000000001))
+        if background == 0:
+            return 0
+        else:
+            return float(signal)/float(TMath.Sqrt(background))
 
     def integral_signal(self, branchname):
         return self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][branchname].Integral()
