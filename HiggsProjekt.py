@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3, gStyle
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3, gStyle, TFile, TLine
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -28,7 +28,12 @@ class Analysis:
         self.DataFolder = 'l3higgs189/'
         self.analyze_info = analyzeInfo
         self.is_mute = self.analyze_info.silent_analysis
-        self.s_ini = 5.0
+        if self.analyze_info.monte_carlo_to_analyse == '85':
+            self.s_ini = 5.727142510004342
+        elif self.analyze_info.monte_carlo_to_analyse == '90':
+            self.s_ini = 4.193391030654311
+        else:
+            self.s_ini = 2.016040261602029
         # This calls the method 'load_trees' of the Analysis class, and the results are stored in the variable trees.
         # trees variable will have a dictionary with the tree name and the tree
         if not self.is_mute:
@@ -50,6 +55,7 @@ class Analysis:
         self.num_events = {'eeqq': 5940000, 'qq': 200000, 'wen': 81786, 'ww': 294500, 'zee': 29500, 'zz': 196000, '85': 3972, '90': 3973, '95': 3971}
         self.random = TRandom3(123654)
         self.data_data_tree = DataTree(self.analyze_info, self.data_tree, 'data', -1, -1, self.random)
+        self.data_histogram = self.data_data_tree.branches_histograms[self.analyze_info.test_statistics_branch]
         if not self.is_mute:
             print_banner('Loading branches information and settings...', '%')
         self.branch_names = self.analyze_info.branch_names
@@ -254,10 +260,25 @@ class Analysis:
                                                 self.mc_toy_histograms_dict[self.analyze_info.monte_carlo_to_analyse][i],
                                                 self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
                                                 self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.analyze_info.test_statistics_branch],
-                                                mu_excl) for i in xrange(self.analyze_info.number_toys)]
+                                                mu_excl,1) for i in xrange(self.analyze_info.number_toys)]
+        fileToys = TFile('histo_toys_{mc}.root'.format(mc=self.analyze_info.monte_carlo_to_analyse), 'RECREATE')
+        for i in xrange(0,self.analyze_info.number_toys,100):
+            self.mc_toy_histograms_dict[self.analyze_info.monte_carlo_to_analyse][i].Write()
+            self.total_background_toy_histograms_dict[i].Write()
+        fileToys.Close()
 
-    def create_q_histograms(self, mu_excl=1, max_bin_value=-1):
+    def calculate_q_data(self, mu_excl=1):
+        self.data_signal_histogram = deepcopy(self.data_histogram)
+        self.data_signal_histogram.Add(self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],-1)
+        self.profile_likelihood_data = ProfileL(self.analyze_info,
+                                                self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
+                                                self.data_signal_histogram, self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
+                                                self.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.analyze_info.test_statistics_branch],
+                                                mu_excl)
+
+    def create_q_histograms(self, mu_excl=1, max_bin_value=-1, doLogY=kTRUE):
         self.calculate_profile_L_objects(mu_excl)
+        self.calculate_q_data(mu_excl)
         if max_bin_value == -1:
             max_bin_q0h0 = self.search_maximum_value_q('q0h0')
             max_bin_q0h1 = self.search_maximum_value_q('q0h1')
@@ -275,55 +296,75 @@ class Analysis:
         h0_lim_sup = max0 + float(max0)/float(2*nbins)
         he_lim_inf = 0 - float(maxe) / float(2 * nbins)
         he_lim_sup = maxe + float(maxe) / float(2 * nbins)
-        hq0h0 = TH1F('q0h0'+self.analyze_info.monte_carlo_to_analyse, 'q0_H0_'+self.analyze_info.monte_carlo_to_analyse,
+        self.hq0h0 = TH1F('q0h0'+self.analyze_info.monte_carlo_to_analyse, 'q0_H0_'+self.analyze_info.monte_carlo_to_analyse,
                      nbins + 1, h0_lim_inf, h0_lim_sup)
-        hq0h0.SetLineColor(TColor.kRed)
-        hq0h0.SetBinErrorOption(TH1F.kPoisson)
-        hq0h0.SetStats(kFALSE)
-        hq0h0.SetMaximum(numtoys)
-        hq0h1 = TH1F('q0h1'+self.analyze_info.monte_carlo_to_analyse, 'q0_H1_'+self.analyze_info.monte_carlo_to_analyse,
+        self.hq0h0.SetLineColor(TColor.kRed)
+        self.hq0h0.SetBinErrorOption(TH1F.kPoisson)
+        self.hq0h0.SetStats(kFALSE)
+        self.hq0h0.SetMaximum(numtoys)
+        self.hq0h1 = TH1F('q0h1'+self.analyze_info.monte_carlo_to_analyse, 'q0_H1_'+self.analyze_info.monte_carlo_to_analyse,
                      nbins + 1, h0_lim_inf, h0_lim_sup)
-        hq0h1.SetLineColor(TColor.kBlue)
-        hq0h1.SetBinErrorOption(TH1F.kPoisson)
-        hq0h1.SetStats(kFALSE)
-        hq0h0.SetMaximum(numtoys)
-        hqeh0 = TH1F('qeh0'+self.analyze_info.monte_carlo_to_analyse, 'qu_H0_'+self.analyze_info.monte_carlo_to_analyse,
+        self.hq0h1.SetLineColor(TColor.kBlue)
+        self.hq0h1.SetBinErrorOption(TH1F.kPoisson)
+        self.hq0h1.SetStats(kFALSE)
+        self.hq0h1.SetMaximum(numtoys)
+        self.hqeh0 = TH1F('qeh0'+self.analyze_info.monte_carlo_to_analyse, 'qu_H0_'+self.analyze_info.monte_carlo_to_analyse,
                      nbins + 1, he_lim_inf, he_lim_sup)
-        hqeh0.SetLineColor(TColor.kRed)
-        hqeh0.SetBinErrorOption(TH1F.kPoisson)
-        hqeh0.SetStats(kFALSE)
-        hq0h0.SetMaximum(numtoys)
-        hqeh1 = TH1F('qeh1'+self.analyze_info.monte_carlo_to_analyse, 'qu_H1_'+self.analyze_info.monte_carlo_to_analyse,
+        self.hqeh0.SetLineColor(TColor.kRed)
+        self.hqeh0.SetBinErrorOption(TH1F.kPoisson)
+        self.hqeh0.SetStats(kFALSE)
+        self.hqeh0.SetMaximum(numtoys)
+        self.hqeh1 = TH1F('qeh1'+self.analyze_info.monte_carlo_to_analyse, 'qu_H1_'+self.analyze_info.monte_carlo_to_analyse,
                      nbins + 1, he_lim_inf, he_lim_sup)
-        hqeh1.SetLineColor(TColor.kBlue)
-        hqeh1.SetBinErrorOption(TH1F.kPoisson)
-        hqeh1.SetStats(kFALSE)
-        hq0h0.SetMaximum(numtoys)
+        self.hqeh1.SetLineColor(TColor.kBlue)
+        self.hqeh1.SetBinErrorOption(TH1F.kPoisson)
+        self.hqeh1.SetStats(kFALSE)
+        self.hqeh1.SetMaximum(numtoys)
         for i in xrange(self.analyze_info.number_toys):
-            hq0h0.Fill(self.profile_likelihoods_list[i].q0_bkg)
-            hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
-            hqeh0.Fill(self.profile_likelihoods_list[i].qe_bkg)
-            hqeh1.Fill(self.profile_likelihoods_list[i].qe_sgnbkg)
+            self.hq0h0.Fill(self.profile_likelihoods_list[i].q0_bkg)
+            self.hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
+            self.hqeh0.Fill(self.profile_likelihoods_list[i].qe_bkg)
+            self.hqeh1.Fill(self.profile_likelihoods_list[i].qe_sgnbkg)
+        self.q0data_bkg = self.profile_likelihood_data.q0_bkg
+        self.qedata_sgnbkg = self.profile_likelihood_data.qe_sgnbkg
+        fileq = TFile('histos_q_{mc}.root'.format(mc=self.analyze_info.monte_carlo_to_analyse), "RECREATE")
+        self.hq0h0.Write()
+        self.hq0h1.Write()
+        self.hqeh0.Write()
+        self.hqeh1.Write()
+        self.q0_line = TLine(self.q0data_bkg, 0, self.q0data_bkg, self.analyze_info.number_toys)
+        self.q0_line.SetLineColor(50)
+        self.q0_line.SetLineStyle(2)
+        self.q0_line.SetLineWidth(3)
+        self.qe_line = TLine(self.qedata_sgnbkg, 0, self.qedata_sgnbkg, self.analyze_info.number_toys)
+        self.qe_line.SetLineColor(50)
+        self.qe_line.SetLineStyle(2)
+        self.qe_line.SetLineWidth(3)
         c1 = TCanvas('q0', 'q0', 1)
         c2 = TCanvas('qu', 'qu', 1)
         c1.cd()
-        hq0h0.Draw()
-        hq0h0.Draw('E SAME')
-        hq0h1.Draw('SAME')
-        hq0h1.Draw('E SAME')
+        self.hq0h0.Draw()
+        # self.hq0h0.Draw('E SAME')
+        self.hq0h1.Draw('SAME')
+        # self.hq0h1.Draw('E SAME')
+        self.q0_line.Draw('SAME')
         c1.BuildLegend()
-        c1.SetLogy()
+        if doLogY:
+            c1.SetLogy()
         c1.SaveAs('q0_'+self.analyze_info.monte_carlo_to_analyse+'.png')
         c2.cd()
-        hqeh0.Draw()
-        hqeh0.Draw('E SAME')
-        hqeh1.Draw('SAME')
-        hqeh1.Draw('E SAME')
+        self.hqeh0.Draw()
+        # self.hqeh0.Draw('E SAME')
+        self.hqeh1.Draw('SAME')
+        # self.hqeh1.Draw('E SAME')
+        self.qe_line.Draw('SAME')
         c2.BuildLegend()
-        c2.SetLogy()
+        if doLogY:
+            c2.SetLogy()
         c2.SaveAs('qu_'+self.analyze_info.monte_carlo_to_analyse+'.png')
-        c1.Destructor()
-        c2.Destructor()
+        c1.Write()
+        c2.Write()
+        fileq.Close()
 
     def search_maximum_value_q(self, variable):
         max = 0
