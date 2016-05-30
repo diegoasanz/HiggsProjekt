@@ -30,19 +30,19 @@ class DataTree:
         else:
             self.number_events = num_events
             self.cross_section = cross_sections
-            self.luminosity = float(self.number_events / self.cross_section)
-            self.scaling_factor = float(176.773 / self.luminosity)
+            self.luminosity = float(self.number_events) / self.cross_section
+            self.scaling_factor = 176.773 / self.luminosity
         self.branches_info = analyzeInfo
         self.tree_entries = self.tree.GetEntries()
         self.cuts = Cuts(self.branches_info)
         self.cuts_words = self.cuts.cuts_words
-        self.branches_histograms = {branch: self.GetBranchHistogram(branch, self.branches_info.branch_numbins[branch],
+        self.branches_histogram_no_norm = {branch: self.GetBranchHistogram(branch, self.branches_info.branch_numbins[branch],
                                                                     self.branches_info.branch_min[branch],
                                                                     self.branches_info.branch_max[branch])
                                     for branch in self.branches_info.branch_names}
-        self.branches_histogram_no_norm = deepcopy(self.branches_histograms)
+        self.branches_histograms = deepcopy(self.branches_histogram_no_norm)
         for branch in self.branches_info.branch_names:
-            self.branches_histogram_no_norm[branch].Scale(float(1)/self.scaling_factor)
+            self.branches_histograms[branch].Scale(self.scaling_factor)
         if name != 'data':
             if name == '85' or name == '90' or name == '95':
                 self.toys = self.generate_toy_experiments('signal_'+name, self.branches_info.test_statistics_branch,
@@ -58,7 +58,7 @@ class DataTree:
         histogram.SetBinErrorOption(TH1F.kPoisson)
         histogram.SetStats(kFALSE)
         self.tree.Draw('{branch}>>{histo}'.format(branch=branchname, histo=histogram_name), cutword, 'goff')
-        histogram.Scale(self.scaling_factor)
+        # histogram.Scale(self.scaling_factor)
         return deepcopy(histogram)
 
     def generate_toy_experiments(self, type, branchname, num):

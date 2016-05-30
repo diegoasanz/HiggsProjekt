@@ -89,16 +89,17 @@ class Analysis:
     def load_trees(self):
         # 'files' is a vector of TFile. Here 'glob' looks for any file that ends with .root and makes a list out of it.
         # Each entry of the vector 'files', is a TFile that opens each of the root files inside the class' variable 'DataFoler'.
-        files = [TFile(f) for f in glob('{dir}*.root'.format(dir=self.DataFolder))]
+        self.files = [TFile(f) for f in glob('{dir}*.root'.format(dir=self.DataFolder))]
+
         # 'trees' is a vector of TTree. Here for each element TFile in 'files', the tree 'h20' is extracted.
         # each entry of 'trees' has the corresponding tree of the root file in 'files'
-        trees = [f.Get('h20') for f in files]
+        trees = [f.Get('h20') for f in self.files]
         # 'dic' is a Python dictionary that assigns each stem of the file name 'f' (from the vector 'files') with a
         # tree 't' (from the vector 'trees')
-        dic = {f.GetName().split('/')[-1].strip('.root').split('higgs_')[-1]: t for f, t in zip(files, trees)}
+        dic = {f.GetName().split('/')[-1].strip('.root').split('higgs_')[-1]: t for f, t in zip(self.files, trees)}
         # returns a complete copy of this dictionary. If it was not copied, as soon as the method exits, all the information would be lost. That
         # is why, it needs to be 'deepcopied' so that this dictionary can be used outside this method.
-        return deepcopy(dic)
+        return dic
 
     def organize_trees(self, dic_trees, names):
         for name in names:
