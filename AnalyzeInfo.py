@@ -417,8 +417,8 @@ class AnalyzeInfo:
         self.toggle_cuts['pho_num'] = 0
         self.toggle_cuts['pho_phi'] = 0
         self.toggle_cuts['pho_the'] = 0
-        self.toggle_cuts['thj1'] = 0
-        self.toggle_cuts['thj2'] = 0
+        self.toggle_cuts['thj1'] = 1
+        self.toggle_cuts['thj2'] = 1
         self.toggle_cuts['ucsdbt0'] = 1
         self.toggle_cuts['xmj1'] = 1
         self.toggle_cuts['xmj2'] = 1
