@@ -3,11 +3,13 @@ from ROOT import TCut, gROOT
 from Utils import *
 from numpy import sqrt
 
+
 def purity(h1, h2):
     try:
         return h1.Integral() / (h1.Integral() + h2.Integral())
     except ZeroDivisionError:
         return 0
+
 
 def significance(sig, bkg):
     try:
@@ -16,6 +18,7 @@ def significance(sig, bkg):
         return sig_int / sqrt(bkg_int) if sig_int and bkg_int else 0
     except ZeroDivisionError:
         return 0
+
 
 def efficiency(sig, sig_nocut):
     return sig.Integral() / sig_nocut.Integral()
@@ -32,7 +35,8 @@ class Cut:
 
         self.Stuff = []
 
-    def define_cutstrings(self):
+    @staticmethod
+    def define_cutstrings():
         dic = OrderedDict()
         dic['btag1'] = TCut('btag1', '')
         dic['btag2'] = TCut('btag2', '')
@@ -57,8 +61,6 @@ class Cut:
             if not name == 'all_cut' and str(cut):
                 self.CutStrings['all_cut'] += cut
         return self.CutStrings['all_cut']
-
-    
 
     def cut_exists(self, name):
         if name in self.CutStrings:
@@ -87,8 +89,7 @@ class Cut:
         print 'Efficiency:', efficiency(sig, sig_nocut)
         print 'Significance:', significance(sig, bkg), significance(sig_nocut, bkg_nocut)
 
-
-    def vary_cut(self, cut='acop', end_val=3.2, show=True, step=10., geq=False, off=1):
+    def vary_cut(self, cut='acop', end_val=3.2, step=10., geq=False, off=1):
         sig_name = self.Signal
         sig_nocut = self.Analysis.draw_signal(sig=sig_name, show=False)
         name = 'm_{{H}}={0}GeV '.format(sig_name)
