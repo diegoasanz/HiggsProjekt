@@ -50,8 +50,8 @@ class CutsScan:
         self.analyze_info.change_montecarlo_to_analyse(mh)
         self.analyze_info.switch_off_all_cuts()
         print_banner('Creating Analysis...', '=')
-        self.analysis = Analysis(self.analyze_info)
-        self.s_ini = Double(self.analysis.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.teststat].Integral())
+        self.analysis0 = Analysis(self.analyze_info)
+        self.s_ini = Double(self.analysis0.mc_histograms_dict[self.analyze_info.monte_carlo_to_analyse][self.teststat].Integral())
         if self.cut_low_ini == -1:
             self.low_cut_ini = self.analyze_info.branch_min[self.branch_cut]
             self.high_cut_ini = self.analyze_info.branch_max[self.branch_cut]
@@ -90,7 +90,6 @@ class CutsScan:
                     self.make_cuts(cutx, cuty)
 
     def make_cuts(self, x, y):
-        del self.analysis
         self.analyze_info.change_toggle_cuts(self.branch_cut, 1)
         self.analyze_info.change_cut_low(self.branch_cut, x)
         self.analyze_info.change_cut_high(self.branch_cut, y)

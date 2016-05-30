@@ -280,13 +280,17 @@ class Analysis:
     def create_q_histograms(self, mu_excl=1, max_bin_value=-1, doLogY=kTRUE):
         self.calculate_profile_L_objects(mu_excl)
         self.calculate_q_data(mu_excl)
+        self.q0data_bkg = self.profile_likelihood_data.q0_bkg
+        self.qedata_sgnbkg = self.profile_likelihood_data.qe_sgnbkg
         if max_bin_value == -1:
             max_bin_q0h0 = self.search_maximum_value_q('q0h0')
             max_bin_q0h1 = self.search_maximum_value_q('q0h1')
             max_bin_qeh0 = self.search_maximum_value_q('qeh0')
             max_bin_qeh1 = self.search_maximum_value_q('qeh1')
-            max0 = amax([max_bin_q0h0, max_bin_q0h1])
-            maxe = amax([max_bin_qeh0, max_bin_qeh1])
+            max00 = amax([max_bin_q0h0, max_bin_q0h1])
+            max0 = amax([max00, self.q0data_bkg])
+            maxee = amax([max_bin_qeh0, max_bin_qeh1])
+            maxe = amax([maxee, self.qedata_sgnbkg])
 
         else:
             max0 = max_bin_value
@@ -326,8 +330,6 @@ class Analysis:
             self.hq0h1.Fill(self.profile_likelihoods_list[i].q0_sgnbkg)
             self.hqeh0.Fill(self.profile_likelihoods_list[i].qe_bkg)
             self.hqeh1.Fill(self.profile_likelihoods_list[i].qe_sgnbkg)
-        self.q0data_bkg = self.profile_likelihood_data.q0_bkg
-        self.qedata_sgnbkg = self.profile_likelihood_data.qe_sgnbkg
         fileq = TFile('histos_q_{mc}.root'.format(mc=self.analyze_info.monte_carlo_to_analyse), "RECREATE")
         self.hq0h0.Write()
         self.hq0h1.Write()
