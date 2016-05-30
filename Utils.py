@@ -56,15 +56,18 @@ def save_plots(savename, save_dir, file_type=None,  sub_dir=None, canvas=None):
             print_banner('ERROR in save plots! {inst}'.format(inst=inst))
 
 
-def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2000, y=2000, l=None):
+def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2000, y=2000, l=None, logy=False):
+        gROOT.ProcessLine('gErrorIgnoreLevel = kError;')
         h = histo
-        gROOT.SetBatch(1) if not show else do_nothing()
+        gROOT.SetBatch(1) if not show else gROOT.SetBatch(0)
         c = TCanvas('c_{0}'.format(h.GetName()), h.GetTitle().split(';')[0], x, y)
-        c.SetMargin(lm, rm, .15, .1)
+        c.SetLogy() if logy else do_nothing()
+        c.SetMargin(lm, rm, .1, .1)
         h.Draw(draw_opt)
         l.Draw() if l is not None else do_nothing()
         save_plots(save_name, save_dir)
         gROOT.SetBatch(0)
+        gROOT.ProcessLine('gErrorIgnoreLevel = 0;')
         return [c, h, l] if l is not None else [c, h]
 
 
