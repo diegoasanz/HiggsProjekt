@@ -28,14 +28,14 @@ class ProfileL:
         # self.npar = 1
         self.start_value_mu = 0.5
         self.init_step_mu = 0.001
-        self.max_iterations = 1000
+        self.max_iterations = 10000
         self.tolerance = 0.001
         self.min_mu = -1
         self.max_mu = 3
         self.working_toy = self.toy_bkg
-        self.mu_toy_bkg = self.fit_mu2()  #self.fit_mu(self.background, self.signal)  #self.fit_mu2()
+        self.mu_toy_bkg = self.fit_mu(self.background, self.signal)  #self.fit_mu2()
         self.working_toy = self.toy_sgnbkg
-        self.mu_toy_sgnbkg = self.fit_mu2()  #self.fit_mu(self.background, self.signal)  #self.fit_mu2()
+        self.mu_toy_sgnbkg = self.fit_mu(self.background, self.signal)  #self.fit_mu2()
         #
         # For discovery:
         #
