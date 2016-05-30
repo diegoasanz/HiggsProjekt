@@ -3,7 +3,7 @@
 #   author: Pin-Jung Diego Alejandro
 # ---------------------------------------------------
 
-from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3, gStyle, TFile, TLine
+from ROOT import TFile, THStack, TColor, TCanvas, TPad, gROOT, gPad, RooFit, RooWorkspace, RooRealVar, RooGaussian, RooPlot, kTRUE, kFALSE, TMath, TH1F, TRandom3, gStyle, TFile, TLine, Math
 from glob import glob
 from copy import deepcopy
 from DataTree import *
@@ -11,6 +11,7 @@ from AnalyzeInfo import *
 from ToyExperimentGen import *
 from ProfileL import *
 from numpy import *
+from array import array
 
 __author__ = 'Pin-Jung & Diego Alejandro'
 
@@ -368,6 +369,23 @@ class Analysis:
         c1.Write()
         c2.Write()
         fileq.Close()
+
+        a1 = linspace(0, 2, 3)
+        b1 = array('d', [0]*3)
+        self.hqeh1.GetQuantiles(3, b1, a1)
+        print b1
+        print 'median of hqeh1 ' +str(b1[1])
+
+        # a2 = linspace(0, 100, 101)
+        # b2 = array('d', [0]*101)
+        # self.hqeh0.GetQuantiles(101, b2, a2)
+        # print '5% is ' +str(b2[100] - b2[95])
+
+
+    # def p_value(self, mu_excl=1):
+    #     q = self.calculate_q_data(mu_excl)
+    #     sigma =
+    #     Math.gaussian_quantile_c(q, sigma)
 
     def search_maximum_value_q(self, variable):
         max = 0
