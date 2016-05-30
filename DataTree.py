@@ -62,6 +62,6 @@ class DataTree:
         return deepcopy(histogram)
 
     def generate_toy_experiments(self, type, branchname, num):
-        name = type + '_' +branchname
+        name = type + '_' + branchname
         histo = self.branches_histogram_no_norm[branchname]
         return {i: ToyExperimentGen(self.branches_info, histo, branchname, self.rand, i, name).toy for i in xrange(num)}
