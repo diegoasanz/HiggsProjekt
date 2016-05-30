@@ -1,6 +1,6 @@
 # utility functions
 
-from ROOT import gROOT, TCanvas, TGraphErrors
+from ROOT import gROOT, TCanvas, TGraphErrors, TLegend
 import ROOT
 from datetime import datetime
 from termcolor import colored
@@ -69,6 +69,22 @@ def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2
         gROOT.SetBatch(0)
         gROOT.ProcessLine('gErrorIgnoreLevel = 0;')
         return [c, h, l] if l is not None else [c, h]
+
+
+def make_legend(x1=.6, y2=.9, nentries=2, w=.3, scale=1, felix=False):
+    x2 = x1 + w
+    y1 = y2 - nentries * .05 * scale
+    l = TLegend(x1, y1, x2, y2)
+    l.SetName('l')
+    l.SetTextFont(42)
+    l.SetTextSize(0.03 * scale)
+    if felix:
+        l.SetLineWidth(2)
+        l.SetBorderSize(0)
+        l.SetFillColor(0)
+        l.SetFillStyle(0)
+        l.SetTextAlign(12)
+    return l
 
 
 def make_tgrapherrors(name, title, color=1, marker=20, marker_size=1, width=1):
