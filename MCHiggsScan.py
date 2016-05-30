@@ -28,6 +28,7 @@ class MCHiggsScan:
         self.ntoys = ntoys
         self.median_search_step = 0.2
         self.mu_old = -1
+        self.mu_old2 = -1
 
 
     def cutsAnalysis(self, mc='85'):
@@ -50,7 +51,7 @@ class MCHiggsScan:
         self.analysis.create_q_histograms(mu, -1)
 
     def search_median(self, mc='85', mu=1, numtoys = -1):
-        print 'testing mu: '+ mu
+        print 'testing mu: '+ str(mu)
         self.analyze_info.change_montecarlo_to_analyse(mc)
         self.mu_i = mu
         if numtoys == -1:
@@ -71,8 +72,36 @@ class MCHiggsScan:
             print_banner('starting finer search')
             self.mu_old -= self.median_search_step
             self.search_median(mc, self.mu_i - self.median_search_step, 500)
-        
 
+    def search_cls(self, mc='85', mu=1, numtoys=-1, alpha=0.01):
+        self.analyze_info.change_montecarlo_to_analyse(mc)
+        self.mu_i2 = mu
+        self.alpha = alpha
+        if numtoys == -1:
+            self.analyze_info.change_number_toys(100)
+            self.analyze_info.bins_q_histos = 10
+            self.median_search_step = 0.2
+        else:
+            self.analyze_info.change_number_toys(numtoys)
+            self.analyze_info.bins_q_histos = 100
+            self.median_search_step = 0.1
+        self.analysis = Analysis(self.analyze_info)
+        self.analysis.search_pvalues(self.mu_i2)
+        if self.analysis.cls < self.alpha:
+            self.mu_old2 = self.mu_i2
+            self.search_cls(mc, self.mu_i2 + self.median_search_step, numtoys, alpha)
+        else:
+            print 'the mu for alpha = {al} lies between mu = {mu0} and {mu1}'.format(al = alpha, mu0=self.mu_old2, mu1=self.mu_i2)
+            print_banner('starting finer search')
+            self.mu_old2 -= self.median_search_step
+            self.search_cls(mc, self.mu_i2 - float(self.median_search_step), 500, alpha)
+
+    def calculate_CL_exclusion(self, mc='85', mu=1, numtoys=100):
+        self.analyze_info.change_montecarlo_to_analyse(mc)
+        self.analyze_info.change_number_toys(numtoys)
+        self.analyze_info.bins_q_histos = 100
+        self.analysis = Analysis(self.analyze_info)
+        self.analysis.search_pvalues(mu)
 
 
 if __name__ == '__main__':

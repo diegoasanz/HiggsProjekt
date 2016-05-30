@@ -378,16 +378,33 @@ class Analysis:
         self.hqeh0.GetQuantiles(3, b1, a1)
         self.hmedian = b1[1]
 
-        # a2 = linspace(0, 100, 101)
-        # b2 = array('d', [0]*101)
-        # self.hqeh0.GetQuantiles(101, b2, a2)s
-        # print '5% is ' +str(b2[100] - b2[95])
+    def search_pvalues(self, mu_excl=1, max_bin_value=-1, doLogY=kTRUE):
+        self.create_q_histograms(mu_excl, max_bin_value, doLogY)
+        a1 = linspace(0, 1, 101)
+        b1 = array('d', [0]*101)
+        self.p_val_sb = -1
+        self.hqeh1.GetQuantiles(101, b1, a1)
+        for i in linspace(100, 0, 101):
+            if b1[int(i)] < self.qedata_sgnbkg:
+                self.p_val_sb = 1-a1[int(i)]
+                break
+        if self.p_val_sb == -1:
+            self.p_val_sb = 1-a1[0]
+        b2 = array('d', [0]*101)
+        self.p_val_b = -1
+        self.hqeh0.GetQuantiles(101, b2, a1)
+        for i in linspace(0,100, 101):
+            if b2[int(i)] > self.qedata_sgnbkg:
+                self.p_val_b = a1[int(i)]
+                break
+        if self.p_val_b == -1:
+            self.p_val_b = a1[-1]
+        if self.p_val_b == 1:
+            self.cls = 0
+        else:
+            self.cls = float(self.p_val_sb)/float(1-self.p_val_b)
+        print 'With a CL of {val}%, we can exclude the s+b with mu = 1'.format(val=100*(1-self.cls))
 
-
-    # def p_value(self, mu_excl=1):
-    #     q = self.calculate_q_data(mu_excl)
-    #     sigma =
-    #     Math.gaussian_quantile_c(q, sigma)
 
     def search_maximum_value_q(self, variable):
         max = 0
@@ -403,6 +420,9 @@ class Analysis:
             if value > max:
                 max = value
         return max
+
+
+
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
