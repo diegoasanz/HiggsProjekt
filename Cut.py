@@ -51,12 +51,24 @@ class Cut:
     def generate_cutstrings(self):
         self.reset_cut('all_cut')
         if self.Signal == '85':
-            self.set_cut('mmis', 'mmis>76')
-            self.set_cut('acop', 'acop<2.7')
+            self.set_cut('mmis', 'mmis>80')
+            self.set_cut('acop', 'acop<3')
             # self.set_cut('acthm', 'acthm<.9')
-            self.set_cut('btag1', 'btag1>.25')
-            self.set_cut('btag2', 'btag2>.15')
+            self.set_cut('btag1', 'btag1>.2')
+            self.set_cut('btag2', 'btag2>.2')
             self.set_cut('ucsdbt0', 'ucsdbt0>1.5')
+        if self.Signal == '90':
+            self.set_cut('mmis', 'mmis>80')
+            self.set_cut('acop', 'acop<3.05')
+            self.set_cut('btag1', 'btag1>.2')
+            self.set_cut('btag2', 'btag2>.2')
+            self.set_cut('ucsdbt0', 'ucsdbt0>1.5')
+        if self.Signal == '95':
+            self.set_cut('mmis', 'mmis>74')
+            self.set_cut('acop', 'acop<3.05')
+            self.set_cut('btag1', 'btag1>.2')
+            self.set_cut('btag2', 'btag2>.2')
+            self.set_cut('ucsdbt0', 'ucsdbt0>1.4')
         for name, cut in self.CutStrings.iteritems():
             if not name == 'all_cut' and str(cut):
                 self.CutStrings['all_cut'] += cut
@@ -109,13 +121,13 @@ class Cut:
             gr.SetPoint(i, val, pur * 100.)
             gr1.SetPoint(i, val, eff * 100.)
             gr2.SetPoint(i, val, significance(sig, bkg) * 100.)
-        format_histo(gr, x_tit='Cut Value', y_tit='Purity [%]', y_off=1.3)
+        format_histo(gr, x_tit='Cut Value', y_tit='Purity [%]', y_off=1.6)
         format_histo(gr1, x_tit='Cut Value', y_tit='Efficiency [%]', y_off=1.3)
         format_histo(gr2, x_tit='Cut Value', y_tit='Significance [%]', y_off=1.3)
         self.Stuff.append(save_histo(gr, 'Purity_{0}{1}'.format(cut, sig_name), False, self.Analysis.ResultsDir, lm=.12))
         self.Stuff.append(save_histo(gr1, 'Efficiency_{0}{1}'.format(cut, sig_name), False, self.Analysis.ResultsDir, lm=.12))
         self.Stuff.append(save_histo(gr2, 'Significance_{0}{1}'.format(cut, sig_name), False, self.Analysis.ResultsDir, lm=.12))
-        c = TCanvas('c', 'c', 3500, 1300)
+        c = TCanvas('c', 'c', 2000, 700)
         c.Divide(3)
         for i, gra in enumerate([gr, gr1, gr2], 1):
             pad = c.cd(i)
@@ -125,8 +137,8 @@ class Cut:
         self.Stuff.append([c])
         gROOT.ProcessLine('gErrorIgnoreLevel = 0;')
 
-    def vary_btag(self, step=10., nbtag=1):
-        self.vary_cut(cut='btag{0}'.format(nbtag), step=step, geq=True, end_val=1, off=0)
+    def vary_btag(self, step=10., nbtag=1, end_val=.5):
+        self.vary_cut(cut='btag{0}'.format(nbtag), step=step, geq=True, end_val=end_val, off=0)
 
     def vary_ucsdbt0(self, step=2., end_val=13):
         self.vary_cut(cut='ucsdbt0', step=step, geq=True, end_val=end_val, off=0)
@@ -134,5 +146,5 @@ class Cut:
     def vary_acthm(self, step=20.):
         self.vary_cut(cut='acthm', step=step, end_val=1, off=0)
 
-    def vary_mmmis(self, step=.2):
+    def vary_mmis(self, step=.2):
         self.vary_cut(cut='mmis', step=step, geq=True, end_val=100, off=50)

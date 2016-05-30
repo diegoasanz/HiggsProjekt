@@ -1,9 +1,13 @@
 # utility functions
 
-from ROOT import gROOT, TCanvas, TGraphErrors, TLegend
+from ROOT import gROOT, TCanvas, TGraphErrors, TLegend, TGaxis
 import ROOT
 from datetime import datetime
 from termcolor import colored
+
+
+cx = 1000
+cy = 1000
 
 
 def log_warning(msg):
@@ -51,12 +55,13 @@ def save_plots(savename, save_dir, file_type=None,  sub_dir=None, canvas=None):
                 return
         canvas.Update()
         try:
-            canvas.SaveAs(resultsdir + savename + file_type)
+            for type in ['.png', '.pdf']:
+                canvas.SaveAs(resultsdir + savename + type)
         except Exception as inst:
             print_banner('ERROR in save plots! {inst}'.format(inst=inst))
 
 
-def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2000, y=2000, l=None, logy=False):
+def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=cx, y=cy, l=None, logy=False, l1=None):
         gROOT.ProcessLine('gErrorIgnoreLevel = kError;')
         h = histo
         gROOT.SetBatch(1) if not show else gROOT.SetBatch(0)
@@ -65,10 +70,11 @@ def save_histo(histo, save_name, show, save_dir, lm=.1, rm=0.1, draw_opt='', x=2
         c.SetMargin(lm, rm, .1, .1)
         h.Draw(draw_opt)
         l.Draw() if l is not None else do_nothing()
+        l1.Draw() if l1 is not None else do_nothing()
         save_plots(save_name, save_dir)
         gROOT.SetBatch(0)
         gROOT.ProcessLine('gErrorIgnoreLevel = 0;')
-        return [c, h, l] if l is not None else [c, h]
+        return [c, h, l, l1] if l is not None else [c, h]
 
 
 def make_legend(x1=.6, y2=.9, nentries=2, w=.3, scale=1, felix=False):
@@ -122,5 +128,19 @@ def get_color():
 
 def do_nothing():
     pass
+
+
+def make_tgaxis(x, y1, y2, title, color=1, width=1, offset=.15, tit_size=.04, line=True, opt='+SU'):
+    a = TGaxis(x, y1, x, y2, y1, y2, 510, opt)
+    a.SetLineColor(color)
+    a.SetLineWidth(width)
+    if line:
+        a.SetTickSize(0)
+        a.SetLabelSize(0)
+    a.SetTitleSize(tit_size)
+    a.SetTitleOffset(offset)
+    a.SetTitle(title)
+    a.SetTitleColor(color)
+    return a
 
 BranchDict = {'mvis': 'Visible Mass', 'mmis': 'Missing Mass'}
