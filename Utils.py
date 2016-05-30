@@ -15,11 +15,12 @@ def print_banner(msg, symbol='='):
     print '\n{delim}\n{msg}\n{delim}\n'.format(delim=len(str(msg)) * symbol, msg=msg)
 
 
-def format_histo(histo, name='', title='', x_tit='', y_tit='', z_tit='', marker=20, color=1, markersize=1, x_off=1, y_off=1, z_off=1, lw=1, fill_color=0):
+def format_histo(histo, name='', title='', x_tit='', y_tit='', z_tit='', marker=20, color=1, markersize=1, x_off=1, y_off=1, z_off=1, lw=1, fill_color=0, stats=True):
         h = histo
         h.SetTitle(title) if title else h.SetTitle(h.GetTitle())
         h.SetName(name) if name else h.SetName(h.GetName())
         try:
+            h.SetStats(0) if not stats else do_nothing()
             h.SetMarkerStyle(marker)
             h.SetMarkerColor(color) if color is not None else h.SetMarkerColor(h.GetMarkerColor())
             h.SetLineColor(color) if color is not None else h.SetLineColor(h.GetLineColor())
