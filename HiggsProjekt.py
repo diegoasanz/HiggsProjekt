@@ -272,6 +272,7 @@ class Analysis:
     def calculate_q_data(self, mu_excl=1):
         self.data_signal_histogram = deepcopy(self.data_histogram)
         self.data_signal_histogram.Add(self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],-1)
+        self.data_signal_histogram.Scale(float(1)/float(mu_excl))
         self.profile_likelihood_data = ProfileL(self.analyze_info,
                                                 self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
                                                 self.data_signal_histogram, self.total_background_histograms_dict[self.analyze_info.test_statistics_branch],
