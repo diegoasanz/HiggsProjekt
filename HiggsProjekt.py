@@ -385,18 +385,16 @@ class Analysis:
         self.p_val_sb = -1
         self.hqeh1.GetQuantiles(101, b1, a1)
         for i in linspace(100, 0, 101):
-            if b1[int(i)] < self.qedata_sgnbkg:
+            if int(self.p_val_sb) == -1 and b1[int(i)] < self.qedata_sgnbkg:
                 self.p_val_sb = 1-a1[int(i)]
-                break
         if self.p_val_sb == -1:
             self.p_val_sb = 1-a1[0]
         b2 = array('d', [0]*101)
         self.p_val_b = -1
         self.hqeh0.GetQuantiles(101, b2, a1)
         for i in linspace(0,100, 101):
-            if b2[int(i)] > self.qedata_sgnbkg:
+            if int(self.p_val_b) == -1 and b2[int(i)] > self.qedata_sgnbkg:
                 self.p_val_b = a1[int(i)]
-                break
         if self.p_val_b == -1:
             self.p_val_b = a1[-1]
         if self.p_val_b == 1:
