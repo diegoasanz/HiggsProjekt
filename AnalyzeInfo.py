@@ -388,17 +388,17 @@ class AnalyzeInfo:
         # self.branch_95_highcut['invmassH'] = 28
 
         self.toggle_cuts = {}
-        self.toggle_cuts['acop'] = 0
+        self.toggle_cuts['acop'] = 1
         self.toggle_cuts['acthm'] = 0
-        self.toggle_cuts['btag1'] = 0
-        self.toggle_cuts['btag2'] = 0
+        self.toggle_cuts['btag1'] = 1
+        self.toggle_cuts['btag2'] = 1
         self.toggle_cuts['ele_ene'] = 0
         self.toggle_cuts['ele_num'] = 0
         self.toggle_cuts['ele_phi'] = 0
         self.toggle_cuts['ele_the'] = 0
         self.toggle_cuts['encm'] = 0
-        self.toggle_cuts['enj1'] = 0
-        self.toggle_cuts['enj2'] = 0
+        self.toggle_cuts['enj1'] = 1
+        self.toggle_cuts['enj2'] = 1
         self.toggle_cuts['fmvis'] = 0
         self.toggle_cuts['ievt'] = 0
         self.toggle_cuts['irun'] = 0
@@ -419,16 +419,16 @@ class AnalyzeInfo:
         self.toggle_cuts['pho_the'] = 0
         self.toggle_cuts['thj1'] = 0
         self.toggle_cuts['thj2'] = 0
-        self.toggle_cuts['ucsdbt0'] = 0
-        self.toggle_cuts['xmj1'] = 0
-        self.toggle_cuts['xmj2'] = 0
+        self.toggle_cuts['ucsdbt0'] = 1
+        self.toggle_cuts['xmj1'] = 1
+        self.toggle_cuts['xmj2'] = 1
         # self.toggle_cuts['invmassH'] = 28
 
         self.monte_carlo_to_analyse = '85'
-        self.test_statistics_branch = 'mvis'
-        self.number_toys = 0
-        self.bins_q_histos = 10
-        self.silent_analysis = 1
+        self.test_statistics_branch = 'mvissc'
+        self.number_toys = 10
+        self.bins_q_histos = 100
+        self.silent_analysis = 0
 
     def change_cut_low(self, branch, value):
         self.branch_85_lowcut[branch] = value
