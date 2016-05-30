@@ -110,7 +110,7 @@ class CutsScan:
             os.makedirs(mc+'/')
         if not os.path.exists(mc+'/'+self.teststat+'/'):
             os.makedirs(mc+'/'+self.teststat+'/')
-        f = TFile(mc+'/'+self.teststat+'/histos.root','RECTREATE')
+        f = TFile(mc+'/'+self.teststat+'/histos_{mc}_{bra}.root'.format(mc=mc, bra=self.branch_cut),'RECREATE')
         gStyle.SetPalette(53)
         self.h_eff.SetContour(1024)
         self.h_eff.SetStats(kFALSE)
@@ -119,6 +119,7 @@ class CutsScan:
         c0 = TCanvas('c0', 'c0', 700, 700)
         c0.cd()
         self.h_eff.Draw('colz')
+        self.h_eff.Write()
         c0.SaveAs(mc+'/'+self.teststat+'/'+self.h_stam_name+'_h_eff.png')
         self.h_purity.SetContour(1024)
         self.h_purity.SetStats(kFALSE)
@@ -127,6 +128,7 @@ class CutsScan:
         c1 = TCanvas('c1', 'c1', 700, 700)
         c1.cd()
         self.h_purity.Draw('colz')
+        self.h_purity.Write()
         c1.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_h_purity.png')
         self.h_signif.SetContour(1024)
         self.h_signif.SetStats(kFALSE)
@@ -135,10 +137,9 @@ class CutsScan:
         c2 = TCanvas('c2', 'c2', 700, 700)
         c2.cd()
         self.h_signif.Draw('colz')
+        self.h_signif.Write()
         c2.SaveAs(mc + '/' + self.teststat + '/'+self.h_stam_name+'_h_signif.png')
-        f.Write()
         f.Close()
-        del f
         # self.stuff.append(c0)
         # self.stuff.append(c1)
         # self.stuff.append(c2)
@@ -150,10 +151,10 @@ if __name__ == '__main__':
         ana = AnalyzeInfo()
         for branch in ana.branch_names:
             if (branch != 'ievt') or (branch != 'irun') or (branch != 'mvis') or (branch != 'mvissc'):
-                teststat = 'mvis'
-                print_banner('Running: {test} with branch {bra}'.format(test = teststat, bra = branch),'=')
-                w = CutsScan(teststat, branch)
-                del w
+                # teststat = 'mvis'
+                # print_banner('Running: {test} with branch {bra}'.format(test = teststat, bra = branch),'=')
+                # w = CutsScan(teststat, branch)
+                # del w
                 teststat = 'mvissc'
                 print_banner('Running: {test} with branch {bra}'.format(test=teststat, bra=branch), '=')
                 w = CutsScan(teststat, branch)
