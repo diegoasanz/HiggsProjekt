@@ -15,6 +15,7 @@ from progressbar import ProgressBar, Percentage, Bar, ETA, FileTransferSpeed
 sig_col = 417  # 598  # 625
 bkg_col = 810  # 418  # 619
 dat_col = 425
+verbose = False
 
 
 class Data:
@@ -341,6 +342,35 @@ class Analysis:
         pbar.finish()
         return h
 
+    def test2(self, sig_name='85', n=1e5, h0=True, show=False, nbins=1000):
+        n = int(n)
+        cut = self.Cut[sig_name].AllCut
+        bkg = self.draw_full_bkg(show=False, cut=cut)
+        sig = self.draw_signal(sig=sig_name, show=False, cut=cut)
+        data = bkg.Clone()
+        data.Add(sig) if h0 else do_nothing()
+        x = [-25, 20]
+        x = [-8, 4] if sig_name == '95' else x
+        x = [-12, 10] if sig_name == '90' else x
+        h = TH1F('h', 'h', nbins, x[0], x[1])
+        pbar = ProgressBar(widgets=[Percentage(), ' ', Bar(), '', ETA(), ' ', FileTransferSpeed()], maxval=n).start()
+        for i in xrange(n):
+            pbar.update(i + 1)
+            ll = self.new_ll(sig, bkg, data)
+            h.Fill(ll)
+        format_histo(h, x_tit='q', y_tit='Number of Entries', y_off=1.3)
+        self.Stuff.append(save_histo(h, 'test', show, self.ResultsDir))
+        pbar.finish()
+        return h
+
+    def test3(self):
+        sig_seed = self.draw_signal(sig=sig_name, show=False, cut=cut, scale=False)
+        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=2, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
+        h = TH1F('h', 'h', 100, 0, 5)
+        for i in xrange(10000):
+            s = self.Signal['higgs_{0}'.format('85')].generate_toys(sig_seed)
+            b = self.get_full_bkg_toy(bkg_seeds)
+
 
     def test(self, sig_name=85):
         sig_name = str(sig_name)
@@ -378,32 +408,91 @@ class Analysis:
     def ratio(self, hs, hb1, hb2, hd, sh, sb, d=False):
         return self.lsb(hs, hb1, hd, sh, sb, d) / self.lb(hb2, hd, sb, d)
 
-    def draw_both(self, sig='85', n=1e4):
-        # h1 = self.h0_ll(show=False, n=n, sig_name=sig)
-        # h2 = self.h0_ll(show=False, h0=False, n=n, sig_name=sig)
-        h1 = self.test1(show=False, n=n, sig_name=sig)
-        h2 = self.test1(show=False, h0=False, n=n, sig_name=sig)
+    def draw_both(self, sig='85', n=1e5, nbins=1000):
+        # sb = self.h0_ll(show=False, n=n, sig_name=sig)
+        # b = self.h0_ll(show=False, h0=False, n=n, sig_name=sig)
+        sb = self.test2(show=False, n=n, sig_name=sig, nbins=nbins)
+        b = self.test2(show=False, h0=False, n=n, sig_name=sig, nbins=nbins)
         # obs = self.observed_ll(sig_name=sig)
-        obs = self.test(sig_name=sig)
-        leg = make_legend(.53, .88, nentries=3, w=.35)
-        h_st = THStack('mc', 'Probability Density;q;Number of Entries')
-        colors = [sig_col, bkg_col]
-        for i, h in enumerate([h1, h2]):
+        # obs = self.test(sig_name=sig)
+        obs = self.obs(sig)
+        leg = make_legend(.15, .88, nentries=3, w=.35)
+        h_st = THStack('mc', 'Likelihood Ratio Test for m_{{H}} = {0} Gev;q=-2ln(Q);Number of Entries'.format(sig))
+        colors = [bkg_col, 601, bkg_col, 601]
+        sb_fill = self.fill_till_threshold(sb, obs, 3)
+        b_fill = self.fill_till_threshold(b, obs, 5, pos=False)
+        for i, h in enumerate([sb_fill, b_fill, sb, b]):
             h.SetStats(0)
+            h.SetLineWidth(2)
             h.SetLineColor(colors[i])
             h_st.Add(h)
-        leg.AddEntry(h1, 'Signal + Background', 'l')
-        leg.AddEntry(h2, 'Background', 'l')
+        leg.AddEntry(sb, 'Signal + Background', 'l')
+        leg.AddEntry(b, 'Background', 'l')
         gr = make_tgrapherrors('b', 'b', width=2)
         leg.AddEntry(gr, 'Observed', 'l')
         gROOT.SetBatch(1)
         h_st.Draw('nostack')
         gROOT.SetBatch(0)
-        maxi = h2.GetMaximum() * 1.05
-        l = make_tgaxis(obs, 0, maxi, 'obs   ', width=2)
+        maxi = b.GetMaximum() * 1.05
+        l = make_tgaxis(obs, 0, maxi, 'obs   ', width=2, offset=.3)
         h_st.SetMaximum(maxi)
-        h_st.GetYaxis().SetTitleOffset(1.4)
-        self.Stuff.append(save_histo(h_st, 'ProbDens{0}'.format(sig), 1, self.ResultsDir, l=l, draw_opt='nostack', l1=leg))
+        h_st.GetYaxis().SetTitleOffset(1.9)
+        self.Stuff.append(save_histo(h_st, 'ProbDens{0}'.format(sig), 1, self.ResultsDir, l=l, draw_opt='nostack', l1=leg, lm=.13))
+
+    def fill_till_threshold(self, h, thr, col, pos=True):
+        h_new = h.Clone()
+        for ibin in xrange(h.GetNbinsX()):
+            if not pos:
+                if h.GetBinLowEdge(ibin) > thr:
+                    h_new.SetBinContent(ibin, 0)
+            else:
+                if h.GetBinLowEdge(ibin) < thr:
+                    h_new.SetBinContent(ibin, 0)
+        h_new.SetFillColor(col)
+        return h_new
+
+
+    def obs(self, sig_name='85'):
+        sig_name = str(sig_name)
+        cut = self.Cut[sig_name].AllCut
+        data = self.draw_data(cut=cut, show=False)
+        sig = self.draw_signal(sig=sig_name, show=False, cut=cut)
+        bkg = self.draw_full_bkg(show=False, cut=cut)
+        # self.bla = save_histo(bkg, 'bla', True, self.ResultsDir)
+        ll = self.new_ll(sig, bkg, data, toy=False)
+        return ll
+
+    def test4(self, h0=True):
+        cut = self.AllCut
+        bkg = self.draw_full_bkg(show=False, cut=cut, nbins=5)
+        sig = self.draw_signal(sig='85', show=False, cut=cut, nbins=5)
+        data = bkg.Clone()
+        data.Add(sig) if h0 else do_nothing()
+
+        sig_seed = self.draw_signal(sig='85', show=False, cut=cut, scale=False, nbins=5)
+        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=5, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
+        toy_data = self.get_full_bkg_toy(bkg_seeds)
+        toy_data.Add(self.Signal['higgs_{0}'.format(85)].generate_toys(sig_seed)) if h0 else do_nothing()
+
+        print self.new_ll(sig, bkg, toy_data)
+
+    def new_ll(self, hs, hb, hd, toy=True):
+        ll = hs.Integral()
+        if verbose:
+            print ll
+        for ibin in xrange(hb.GetNbinsX()):
+            s = hs.GetBinContent(ibin)
+            b = hb.GetBinContent(ibin)
+            n = hd.GetBinContent(ibin)
+            n = gRandom.Poisson(n) if toy else n
+            if b and n:
+                if verbose:
+                    print n, s, b, n * log(1 + s / b)
+                ll -= n * log(1 + s / b)
+        if verbose:
+            print ll
+        return 2 * ll
+
 
     def get_CLs(self, h1, h2, obs):
         pass

@@ -6,8 +6,8 @@ from datetime import datetime
 from termcolor import colored
 
 
-cx = 1000
-cy = 1000
+cx = 2000
+cy = 2000
 
 
 def log_warning(msg):
@@ -138,6 +138,7 @@ def make_tgaxis(x, y1, y2, title, color=1, width=1, offset=.15, tit_size=.04, li
         a.SetTickSize(0)
         a.SetLabelSize(0)
     a.SetTitleSize(tit_size)
+    a.CenterTitle()
     a.SetTitleOffset(offset)
     a.SetTitle(title)
     a.SetTitleColor(color)
