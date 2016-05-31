@@ -437,6 +437,7 @@ class Analysis:
         l = make_tgaxis(obs, 0, maxi, 'obs   ', width=2, offset=.3)
         h_st.SetMaximum(maxi)
         h_st.GetYaxis().SetTitleOffset(1.9)
+        print 'CLs is:', self.get_CLs(sb, b, obs)
         self.Stuff.append(save_histo(h_st, 'ProbDens{0}'.format(sig), 1, self.ResultsDir, l=l, draw_opt='nostack', l1=leg, lm=.13))
 
     def fill_till_threshold(self, h, thr, col, pos=True):
@@ -494,8 +495,14 @@ class Analysis:
         return 2 * ll
 
 
-    def get_CLs(self, h1, h2, obs):
-        pass
+    def get_CLs(self, hs, hb, obs):
+        s = hs.Clone()
+        s.Scale(1 / hs.Integral())
+        b = hb.Clone()
+        b.Scale(1 / hb.Integral())
+        psb = s.Integral(s.FindBin(obs), s.GetNbinsX() - 1)
+        pb = b.Integral(1, b.FindBin(obs))
+        return psb / (1 - pb)
 
 
 
