@@ -1,13 +1,13 @@
 # utility functions
 
-from ROOT import gROOT, TCanvas, TGraphErrors, TLegend, TGaxis
+from ROOT import gROOT, TCanvas, TGraphErrors, TLegend, TGaxis, TGraphAsymmErrors
 import ROOT
 from datetime import datetime
 from termcolor import colored
 
 
-cx = 2000
-cy = 2000
+cx = 1000
+cy = 1000
 
 
 def log_warning(msg):
@@ -19,31 +19,46 @@ def print_banner(msg, symbol='='):
     print '\n{delim}\n{msg}\n{delim}\n'.format(delim=len(str(msg)) * symbol, msg=msg)
 
 
-def format_histo(histo, name='', title='', x_tit='', y_tit='', z_tit='', marker=20, color=1, markersize=1, x_off=1, y_off=1, z_off=1, lw=1, fill_color=0, stats=True):
-        h = histo
-        h.SetTitle(title) if title else h.SetTitle(h.GetTitle())
-        h.SetName(name) if name else h.SetName(h.GetName())
-        try:
-            h.SetStats(0) if not stats else do_nothing()
-            h.SetMarkerStyle(marker)
-            h.SetMarkerColor(color) if color is not None else h.SetMarkerColor(h.GetMarkerColor())
-            h.SetLineColor(color) if color is not None else h.SetLineColor(h.GetLineColor())
-            h.SetMarkerSize(markersize)
-            h.SetFillColor(fill_color)
-            h.SetLineWidth(lw)
-            h.GetXaxis().SetTitle(x_tit) if x_tit else h.GetXaxis().GetTitle()
-            h.GetXaxis().SetTitleOffset(x_off)
-            h.GetYaxis().SetTitle(y_tit) if y_tit else h.GetYaxis().GetTitle()
-            h.GetYaxis().SetTitleOffset(y_off)
-            h.GetZaxis().SetTitle(z_tit) if z_tit else h.GetZaxis().GetTitle()
-            h.GetZaxis().SetTitleOffset(z_off)
-        except AttributeError or ReferenceError:
-            pass
+def format_histo(histo, name='', title='', x_tit='', y_tit='', z_tit='', marker=20, color=1, markersize=1, x_off=1, y_off=1, z_off=1, lw=1, fill_color=0, stats=True,
+                 tit_size=.04):
+    h = histo
+    h.SetTitle(title) if title else h.SetTitle(h.GetTitle())
+    h.SetName(name) if name else h.SetName(h.GetName())
+    try:
+        h.SetStats(stats)
+    except AttributeError or ReferenceError:
+        pass
+    # markers
+    try:
+        h.SetMarkerStyle(marker)
+        h.SetMarkerColor(color) if color is not None else h.SetMarkerColor(h.GetMarkerColor())
+        h.SetMarkerSize(markersize)
+    except AttributeError or ReferenceError:
+        pass
+    # lines/fill
+    try:
+        h.SetLineColor(color) if color is not None else h.SetLineColor(h.GetLineColor())
+        h.SetFillColor(fill_color)
+        h.SetLineWidth(lw)
+    except AttributeError or ReferenceError:
+        pass
+    # axis titles
+    try:
+        h.GetXaxis().SetTitle(x_tit) if x_tit else h.GetXaxis().GetTitle()
+        h.GetXaxis().SetTitleOffset(x_off)
+        h.GetXaxis().SetTitleSize(tit_size)
+        h.GetYaxis().SetTitle(y_tit) if y_tit else h.GetYaxis().GetTitle()
+        h.GetYaxis().SetTitleOffset(y_off)
+        h.GetYaxis().SetTitleSize(tit_size)
+        h.GetZaxis().SetTitle(z_tit) if z_tit else h.GetZaxis().GetTitle()
+        h.GetZaxis().SetTitleOffset(z_off)
+        h.GetZaxis().SetTitleSize(tit_size)
+    except AttributeError or ReferenceError:
+        pass
 
 
-def save_plots(savename, save_dir, file_type=None,  sub_dir=None, canvas=None):
+def save_plots(savename, save_dir, sub_dir=None, canvas=None):
         save_dir = save_dir
-        file_type = '.png' if file_type is None else '.{end}'.format(end=file_type)
         sub_dir = '' if sub_dir is None else '{subdir}/'.format(subdir=sub_dir)
         resultsdir = save_dir + sub_dir
         if canvas is None:
@@ -55,8 +70,8 @@ def save_plots(savename, save_dir, file_type=None,  sub_dir=None, canvas=None):
                 return
         canvas.Update()
         try:
-            for type in ['.png', '.pdf']:
-                canvas.SaveAs(resultsdir + savename + type)
+            for _type in ['.png', '.pdf']:
+                canvas.SaveAs(resultsdir + savename + _type)
         except Exception as inst:
             print_banner('ERROR in save plots! {inst}'.format(inst=inst))
 
@@ -93,8 +108,8 @@ def make_legend(x1=.6, y2=.9, nentries=2, w=.3, scale=1, felix=False):
     return l
 
 
-def make_tgrapherrors(name, title, color=1, marker=20, marker_size=1, width=1):
-    gr = TGraphErrors()
+def make_tgrapherrors(name, title, color=1, marker=20, marker_size=1, width=1, asym=False, fill_col=None):
+    gr = TGraphErrors() if not asym else TGraphAsymmErrors()
     gr.SetTitle(title)
     gr.SetName(name)
     gr.SetMarkerStyle(marker)
@@ -102,6 +117,7 @@ def make_tgrapherrors(name, title, color=1, marker=20, marker_size=1, width=1):
     gr.SetLineColor(color)
     gr.SetMarkerSize(marker_size)
     gr.SetLineWidth(width)
+    gr.SetFillColor(fill_col) if fill_col is not None else do_nothing()
     return gr
 
 
@@ -139,6 +155,20 @@ def make_tgaxis(x, y1, y2, title, color=1, width=1, offset=.15, tit_size=.04, li
         a.SetLabelSize(0)
     a.SetTitleSize(tit_size)
     a.CenterTitle()
+    a.SetTitleOffset(offset)
+    a.SetTitle(title)
+    a.SetTitleColor(color)
+    return a
+
+
+def make_tgxaxis(x1, x2, y, title, color=1, width=1, offset=.15, tit_size=.04, line=True, opt='+SU'):
+    a = TGaxis(x1, y, x2, y, x1, x2, 510, opt)
+    a.SetLineColor(color)
+    a.SetLineWidth(width)
+    if line:
+        a.SetTickSize(0)
+        a.SetLabelSize(0)
+    a.SetTitleSize(tit_size)
     a.SetTitleOffset(offset)
     a.SetTitle(title)
     a.SetTitleColor(color)

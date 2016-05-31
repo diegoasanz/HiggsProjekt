@@ -3,13 +3,13 @@
 #   author: Michael Reichmann
 # ---------------------------------------------------
 
-from ROOT import TFile, TH1F, THStack, TLegend, TCut, gROOT, gRandom
+from ROOT import TFile, TH1F, THStack, TLegend, TCut, gROOT, gRandom, TMultiGraph
 from glob import glob
-from numpy import log
-from math import factorial
+from numpy import log, array, zeros
 from Utils import *
 from Cut import Cut, significance, purity, efficiency
 from progressbar import ProgressBar, Percentage, Bar, ETA, FileTransferSpeed
+from collections import OrderedDict
 
 
 sig_col = 417  # 598  # 625
@@ -86,6 +86,9 @@ class Analysis:
         self.AllCut = self.Cut['85'].AllCut
 
         self.Stuff = []
+        self.SB = {}
+        self.B = {}
+        self.Obs = {}
 
     def load_trees(self):
         self.Files = [TFile(f) for f in glob('{dir}*.root'.format(dir=self.DataFolder))]
@@ -113,9 +116,11 @@ class Analysis:
         return lum
 
     def draw_data(self, branch='mvis', show=True, scaled=True, nbins=2, xmax=120, cut='', draw_opt='e1', xmin=40):
+        gROOT.ProcessLine('gErrorIgnoreLevel = kError;')
         h = self.Data.get_histo(branch, scaled=scaled, nbins=nbins, xmax=xmax, cut_string=cut, xmin=xmin)
         h.SetFillColor(dat_col)
         self.Stuff.append(save_histo(h, 'Data{0}'.format(branch.title()), show, self.ResultsDir, draw_opt=draw_opt))
+        gROOT.ProcessLine('gErrorIgnoreLevel = kError;')
         return h
 
     def draw_signal(self, sig='85', branch='mvis', show=True, scale=True, cut='', nbins=2, xmax=120, draw_opt='', xmin=40):
@@ -185,35 +190,6 @@ class Analysis:
         h_st.SetMaximum(3.5)
         self.Stuff.append(save_histo(h_st, 'AllWithCuts{0}'.format(sig_name), True, self.ResultsDir, draw_opt='nostack', l=leg))
 
-
-    def draw_mc(self, branch='mvis', show=True, sig_name='85', stack=False, nbins=28, xmax=140, logy=False):
-        sig = self.draw_signal(sig_name, branch, False, scale=True, nbins=nbins, xmax=xmax)
-        bkg = self.draw_full_bkg(branch, False, nbins=nbins, xmax=xmax)
-        leg = make_legend(x1=.12, y2=.88, w=.3)
-        leg.AddEntry(sig, 'Signal higgs_{0}'.format(sig_name), 'f')
-        leg.AddEntry(bkg, 'Full Background', 'f')
-        save_name = 'MC_{0}'.format(branch)
-        if not stack:
-            bkg.SetTitle('Monte Carlo for {0}'.format(branch))
-            sig.SetBarOffset(.5)
-            sig.SetBarWidth(.49)
-            bkg.SetBarWidth(.49)
-            c = TCanvas('c', 'c', 2000, 2000)
-            c.SetLogy() if logy else do_nothing()
-            bkg.Draw('bar2')
-            sig.Draw('bar2same')
-            leg.Draw()
-            save_plots(save_name, self.ResultsDir)
-            self.Stuff.append([c, bkg, sig, leg])
-        else:
-            h_st = THStack('mc', 'Signal and Background for {nam};{nam};Scaled Number of Entries'.format(nam=branch))
-            for h in [bkg, sig]:
-                h_st.Add(h)
-            gROOT.SetBatch(1)
-            h_st.Draw()
-            h_st.GetYaxis().SetTitleOffset(1.3)
-            self.Stuff.append(save_histo(h_st, save_name, show, self.ResultsDir, draw_opt='nostack', l=leg, logy=logy))
-
     def draw_all_branches(self, sig='85'):
         for branch in self.Data.Branches:
             cut = ''
@@ -241,52 +217,6 @@ class Analysis:
         print '  Significance:'.ljust(15), '{0:6.2f}%'.format(significance(sig, bkg) * 100.)
         print '  Efficiency:'.ljust(15), '{0:6.2f}%'.format(efficiency(sig, sig_nocut) * 100.)
 
-    # def test(self, show=True):
-    #     cut = self.Cut['85'].AllCut
-    #     data_nocut = self.draw_data(show=False)
-    #     data = self.draw_data(cut=cut, show=False)
-    #     h1 = TH1F('h', 'h', 10, 0, .5)
-    #     h2 = h1.Clone
-    #     for ibin in xrange(data_nocut.GetNbinsX()):
-    #         s = data.GetBinContent(ibin)
-    #         b = data_nocut.GetBinContent(ibin) - data.GetBinContent(ibin)
-    #         print ibin, s, b
-    #         if b:
-    #             h1.Fill(log(1 + s / b))
-    #             print log(1 + s / b)
-    #     format_histo(h1, x_tit='ln(1 + s/b)', y_tit='Number of Entries')
-    #     self.Stuff.append(save_histo(h1, 'test', show, self.ResultsDir, lm=1.2, draw_opt='e1'))
-
-    @staticmethod
-    def neg_log_lr(h_s, h_b, seed_b, data, h0=True):
-        ll = 0
-        for ibin in xrange(seed_b.GetNbinsX()):
-            s = h_s.GetBinContent(ibin) if h0 else 0
-            b = h_b.GetBinContent(ibin)
-            n = data.GetBinContent(ibin)
-            b1 = seed_b.GetBinContent(ibin)
-            if b1:
-                ll += s - log((s + b) / b1) * n
-        return 2 * ll
-
-    def observed_ll(self, sig_name='85'):
-        sig_name = str(sig_name)
-        cut = self.Cut[sig_name].AllCut
-        sig = self.draw_data(cut=cut, show=False)
-        bkg = self.draw_data(show=False)
-        bkg.Add(sig, -1)
-        ll = self.neg_log_lr(sig, bkg, bkg, sig)
-        return ll
-
-    def h0(self):
-        sig_name = '85'
-        cut = self.Cut[sig_name].AllCut
-        sig = self.draw_signal(sig_name, show=False, scale=True, nbins=2, cut=cut)
-        bkg = self.draw_full_bkg(show=False, nbins=2, cut=cut)
-        ll = self.neg_log_lr(sig, bkg)
-        print ll
-        return ll
-
     def get_full_bkg_toy(self, histos):
         toys = [self.Background[name].generate_toys(h) for name, h in histos.iteritems()]
         bkg = toys[0].Clone()
@@ -294,53 +224,6 @@ class Analysis:
         for toy in toys:
             bkg.Add(toy)
         return bkg
-
-    def h0_ll(self, sig_name='85', n=10000., h0=True, show=False):
-        n = int(n)
-        cut = self.Cut[sig_name].AllCut
-        data = self.draw_data(nbins=2, show=False, cut=cut)
-        sig_seed = self.draw_signal(sig=sig_name, show=False, cut=cut, scale=False)
-        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=2, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
-        bkg1 = self.draw_full_bkg(show=False, cut=cut)
-        h = TH1F('h', 'h', 100, -20, 20)
-        pbar = ProgressBar(widgets=[Percentage(), ' ', Bar(), '', ETA(), ' ', FileTransferSpeed()], maxval=n).start()
-        for i in xrange(n):
-            pbar.update(i + 1)
-            sig = self.Signal['higgs_{0}'.format(sig_name)].generate_toys(sig_seed)
-            bkg = self.get_full_bkg_toy(bkg_seeds)
-            bkg2 = self.get_full_bkg_toy(bkg_seeds)
-            ll = self.neg_log_lr(sig, bkg, bkg2, data, h0)
-            h.Fill(ll)
-        format_histo(h, x_tit='q', y_tit='Number of Entries', y_off=1.3)
-        self.Stuff.append(save_histo(h, 'test', show, self.ResultsDir))
-        pbar.finish()
-        return h
-
-    def test1(self, sig_name='85', n=10000., h0=True, show=False):
-        n = int(n)
-        cut = self.Cut[sig_name].AllCut
-        data = self.draw_data(nbins=2, show=False, cut=cut)
-        sig_seed = self.draw_signal(sig=sig_name, show=False, cut=cut, scale=False)
-        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=2, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
-        b_pdf = self.draw_full_bkg(show=False, cut=cut)
-        b_pdf.Scale(1 / b_pdf.Integral())
-        s_pdf = self.draw_signal(sig=sig_name, show=False, cut=cut)
-        s_pdf.Scale(1 / s_pdf.Integral())
-        xmin = 0 if not sig_name == '95' else .5
-        xmax = 4 if not sig_name == '95' else 2
-        h = TH1F('h', 'h', 100, xmin, xmax)
-        pbar = ProgressBar(widgets=[Percentage(), ' ', Bar(), '', ETA(), ' ', FileTransferSpeed()], maxval=n).start()
-        for i in xrange(n):
-            pbar.update(i + 1)
-            sig = self.Signal['higgs_{0}'.format(sig_name)].generate_toys(sig_seed) if h0 else 0
-            bkg = self.get_full_bkg_toy(bkg_seeds)
-            bkg2 = self.get_full_bkg_toy(bkg_seeds)
-            ll = self.ratio(sig, bkg, bkg2, data, s_pdf, b_pdf)
-            h.Fill(ll)
-        format_histo(h, x_tit='q', y_tit='Number of Entries', y_off=1.3)
-        self.Stuff.append(save_histo(h, 'test', show, self.ResultsDir))
-        pbar.finish()
-        return h
 
     def test2(self, sig_name='85', n=1e5, h0=True, show=False, nbins=1000):
         n = int(n)
@@ -363,52 +246,7 @@ class Analysis:
         pbar.finish()
         return h
 
-    def test3(self):
-        sig_seed = self.draw_signal(sig=sig_name, show=False, cut=cut, scale=False)
-        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=2, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
-        h = TH1F('h', 'h', 100, 0, 5)
-        for i in xrange(10000):
-            s = self.Signal['higgs_{0}'.format('85')].generate_toys(sig_seed)
-            b = self.get_full_bkg_toy(bkg_seeds)
-
-
-    def test(self, sig_name=85):
-        sig_name = str(sig_name)
-        cut = self.Cut[sig_name].AllCut
-        sig = self.draw_data(cut=cut, show=False)
-        bkg = self.draw_data(show=False)
-        bkg.Add(sig, -1)
-        b_pdf = self.draw_full_bkg(show=False, cut=cut)
-        b_pdf.Scale(1 / b_pdf.Integral())
-        s_pdf = self.draw_signal(sig=sig_name, show=False, cut=cut)
-        s_pdf.Scale(1 / s_pdf.Integral())
-        ll = self.ratio(sig, bkg, bkg, sig, s_pdf, b_pdf, d=True)
-        print ll
-        return ll
-
-    def lsb(self, hs, hb, hd, sh, sb, d=False):
-        n = hd.Integral()
-        s = hs.Integral() if hs else 0
-        b = hb.Integral()
-        ll = n * log(s + b) - s - b - log(factorial(n))
-        if not d:
-            for ibin in xrange(hb.GetNbinsX()):
-                ll += (s * sh.GetBinContent(ibin) + b * sb.GetBinContent(ibin)) / (s + b)
-        return ll
-
-    def lb(self, hb, hd, sb, d=False):
-        n = hd.Integral()
-        b = hb.Integral()
-        ll =  n * log(b) - b - log(factorial(n))
-        if not d:
-            for ibin in xrange(sb.GetNbinsX()):
-                ll += sb.GetBinContent(ibin)
-        return ll
-
-    def ratio(self, hs, hb1, hb2, hd, sh, sb, d=False):
-        return self.lsb(hs, hb1, hd, sh, sb, d) / self.lb(hb2, hd, sb, d)
-
-    def draw_both(self, sig='85', n=1e5, nbins=1000):
+    def draw_both(self, sig='85', n=1e5, nbins=1000, show=True):
         # sb = self.h0_ll(show=False, n=n, sig_name=sig)
         # b = self.h0_ll(show=False, h0=False, n=n, sig_name=sig)
         sb = self.test2(show=False, n=n, sig_name=sig, nbins=nbins)
@@ -437,21 +275,11 @@ class Analysis:
         l = make_tgaxis(obs, 0, maxi, 'obs   ', width=2, offset=.3)
         h_st.SetMaximum(maxi)
         h_st.GetYaxis().SetTitleOffset(1.9)
-        print 'CLs is:', self.get_CLs(sb, b, obs)
-        self.Stuff.append(save_histo(h_st, 'ProbDens{0}'.format(sig), 1, self.ResultsDir, l=l, draw_opt='nostack', l1=leg, lm=.13))
-
-    def fill_till_threshold(self, h, thr, col, pos=True):
-        h_new = h.Clone()
-        for ibin in xrange(h.GetNbinsX()):
-            if not pos:
-                if h.GetBinLowEdge(ibin) > thr:
-                    h_new.SetBinContent(ibin, 0)
-            else:
-                if h.GetBinLowEdge(ibin) < thr:
-                    h_new.SetBinContent(ibin, 0)
-        h_new.SetFillColor(col)
-        return h_new
-
+        print 'CLs is:', self.get_cls(sb, b, obs)
+        self.Stuff.append(save_histo(h_st, 'ProbDens{0}{1}'.format(sig, n), show, self.ResultsDir, l=l, draw_opt='nostack', l1=leg, lm=.13))
+        self.SB[sig] = sb
+        self.B[sig] = b
+        self.Obs[sig] = obs
 
     def obs(self, sig_name='85'):
         sig_name = str(sig_name)
@@ -463,21 +291,8 @@ class Analysis:
         ll = self.new_ll(sig, bkg, data, toy=False)
         return ll
 
-    def test4(self, h0=True):
-        cut = self.AllCut
-        bkg = self.draw_full_bkg(show=False, cut=cut, nbins=5)
-        sig = self.draw_signal(sig='85', show=False, cut=cut, nbins=5)
-        data = bkg.Clone()
-        data.Add(sig) if h0 else do_nothing()
-
-        sig_seed = self.draw_signal(sig='85', show=False, cut=cut, scale=False, nbins=5)
-        bkg_seeds = {bkg: self.draw_bkg(bkg, branch='mvis', show=False, nbins=5, xmax=120, cut=cut, scale=False, xmin=40) for bkg in self.Background}
-        toy_data = self.get_full_bkg_toy(bkg_seeds)
-        toy_data.Add(self.Signal['higgs_{0}'.format(85)].generate_toys(sig_seed)) if h0 else do_nothing()
-
-        print self.new_ll(sig, bkg, toy_data)
-
-    def new_ll(self, hs, hb, hd, toy=True):
+    @staticmethod
+    def new_ll(hs, hb, hd, toy=True):
         ll = hs.Integral()
         if verbose:
             print ll
@@ -494,8 +309,103 @@ class Analysis:
             print ll
         return 2 * ll
 
+    def exclusion_plot(self, n=5e4, nbins=200):
+        if not self.SB:
+            for sig in self.Cut:
+                self.draw_both(sig=sig, n=n, nbins=nbins, show=False)
+        cls = {}
+        for sig in self.Cut:
+            cls[sig] = (self.get_cls(self.SB[sig], self.B[sig], self.Obs[sig]))
+        gr = make_tgrapherrors('gr', 'Exclusion Values', width=2)
+        gr1 = make_tgrapherrors('gr1', '90% limit', width=2, color=2)
+        gr2 = make_tgrapherrors('gr2', '95% limit', width=2, color=4)
+        l = make_legend(.12, .88, 3, w=.3)
+        for g in [gr, gr1, gr2]:
+            l.AddEntry(g, g.GetTitle(), 'l')
+        cls = OrderedDict(sorted(cls.iteritems()))
+        for i, (name, val) in enumerate(cls.iteritems()):
+            gr.SetPoint(i, int(name), val * 100.)
+        format_histo(gr, x_tit='m_{H} [GeV]', y_tit='CLs [%]', y_off=1.2)
+        self.Stuff.append(save_histo(gr, 'ExclusionPlot', 1, self.ResultsDir, l=l))
+        l1 = make_tgxaxis(84, 96, 10, '90%', color=2, offset=.3, width=2)
+        l2 = make_tgxaxis(84, 96, 5, '95%', color=4, offset=.3, width=2)
+        l1.Draw()
+        l2.Draw()
+        self.Stuff.append([l1, l2])
+        save_plots('ExclusionPlot', self.ResultsDir)
 
-    def get_CLs(self, hs, hb, obs):
+    def brazilian_flag(self, n=5e4, nbins=200):
+        if not self.SB:
+            for sig in self.Cut:
+                gROOT.ProcessLine('gErrorIgnoreLevel = kError;')
+                self.draw_both(sig=sig, n=n, nbins=nbins, show=False)
+        quant = {}
+        for sig in self.Cut:
+            quant[sig] = (self.get_quantiles(self.B[sig]))
+        quant = OrderedDict(sorted(quant.iteritems()))
+        b_means = {sig: h.GetMean() for sig, h in self.B.iteritems()}
+        b_means = OrderedDict(sorted(b_means.iteritems()))
+        sb_means = {sig: h.GetMean() for sig, h in self.SB.iteritems()}
+        sb_means = OrderedDict(sorted(sb_means.iteritems()))
+        obs = {sig: obs for sig, obs in self.Obs.iteritems()}
+        obs = OrderedDict(sorted(obs.iteritems()))
+        gROOT.ProcessLine('gErrorIgnoreLevel = 0;')
+        gr1 = make_tgrapherrors('gr1', 'Mean Sig + Bkg', color=bkg_col, width=2, marker_size=2, marker=21)
+        gr2 = make_tgrapherrors('gr2', 'Mean Bkg', color=601, width=2, marker_size=2, marker=21)
+        gr3 = make_tgrapherrors('gr3', 'Observed', width=2, marker_size=2, marker=21)
+        gr4 = make_tgrapherrors('gr4', '2 #sigma', marker_size=0, width=2, fill_col=3)
+        gr5 = make_tgrapherrors('gr5', '1 #sigma', width=2, fill_col=5)
+        gr6 = make_tgrapherrors('gr6', 's21', width=2, fill_col=5)
+        gr7 = make_tgrapherrors('gr7', 's22', width=2, fill_col=3)
+        for i, (sig, val) in enumerate(sb_means.iteritems()):
+            gr1.SetPoint(i, int(sig), val)
+        for i, (sig, val) in enumerate(b_means.iteritems()):
+            gr2.SetPoint(i, int(sig), val)
+        for i, (sig, val) in enumerate(obs.iteritems()):
+            gr3.SetPoint(i, int(sig), val)
+        leg = make_legend(.58, .88, 5, w=.3)
+        for gr in [gr1, gr2, gr3]:
+            leg.AddEntry(gr, gr.GetTitle(), 'lp')
+
+        self.fill_flag(gr4, quant, quant, 0, 1)
+        self.fill_flag(gr5, quant, b_means, 1)
+        self.fill_flag(gr6, b_means, quant, None, 2)
+        self.fill_flag(gr7, quant, quant, 2, 3)
+
+        for gr in [gr4, gr5]:
+            leg.AddEntry(gr, gr.GetTitle(), 'f')
+
+        mg = TMultiGraph('mg_ph', 'Brazilian Flag')
+        for gr in [gr4, gr5, gr6, gr7]:
+            mg.Add(gr, 'f')
+            mg.Add(gr, 'l')
+        for gr in [gr1, gr2, gr3]:
+            mg.Add(gr, 'pl')
+        gROOT.SetBatch(1)
+        mg.Draw('A')
+        gROOT.SetBatch()
+        format_histo(mg, x_tit='m_{H} [GeV]', y_tit='q=-2ln(Q)', y_off=1.2)
+        self.Stuff.append(save_histo(mg, 'BrazFlag', 1, self.ResultsDir, draw_opt='A', l=leg))
+
+    @staticmethod
+    def fill_flag(gr, d1, d2, e1=None, e2=None):
+        for i, (sig, val) in enumerate(d1.iteritems()):
+            gr.SetPoint(i, int(sig), val[e1] if e1 is not None else val)
+        i = 5
+        for sig, val in d2.iteritems():
+            gr.SetPoint(i, int(sig), val[e2] if e2 is not None else val)
+            i -= 1
+        gr.SetPoint(6, gr.GetX()[0], gr.GetY()[0])
+
+    @staticmethod
+    def get_quantiles(b):
+        y = zeros(4)
+        x = array([(1 - .95) / 2., (1 - .68) / 2., (1 + .68) / 2., (1 + .95) / 2.])
+        b.GetQuantiles(4, y, x)
+        return y
+
+    @staticmethod
+    def get_cls(hs, hb, obs):
         s = hs.Clone()
         s.Scale(1 / hs.Integral())
         b = hb.Clone()
@@ -504,6 +414,18 @@ class Analysis:
         pb = b.Integral(1, b.FindBin(obs))
         return psb / (1 - pb)
 
+    @staticmethod
+    def fill_till_threshold(h, thr, col, pos=True):
+        h_new = h.Clone()
+        for ibin in xrange(h.GetNbinsX()):
+            if not pos:
+                if h.GetBinLowEdge(ibin) > thr:
+                    h_new.SetBinContent(ibin, 0)
+            else:
+                if h.GetBinLowEdge(ibin) < thr:
+                    h_new.SetBinContent(ibin, 0)
+        h_new.SetFillColor(col)
+        return h_new
 
 
 __author__ = 'micha'
