@@ -294,15 +294,26 @@ class Analysis:
             maxee = amax([max_bin_qeh0, max_bin_qeh1])
             maxe = amax([maxee, self.qedata_sgnbkg])
 
+            min_bin_q0h0 = self.search_minimum_value_q('q0h0')
+            min_bin_q0h1 = self.search_minimum_value_q('q0h1')
+            min_bin_qeh0 = self.search_minimum_value_q('qeh0')
+            min_bin_qeh1 = self.search_minimum_value_q('qeh1')
+            min00 = amin([min_bin_q0h0, min_bin_q0h1])
+            min0 = amin([min00, self.q0data_bkg])
+            minee = amin([min_bin_qeh0, min_bin_qeh1])
+            mine = amin([minee, self.qedata_sgnbkg])
+
         else:
             max0 = max_bin_value
             maxe = max_bin_value
+            min0 = 0
+            mine = 0
         nbins = self.analyze_info.bins_q_histos
         numtoys = self.analyze_info.number_toys
-        h0_lim_inf = 0-float(max0)/float(2*nbins)
-        h0_lim_sup = max0 + float(max0)/float(2*nbins)
-        he_lim_inf = 0 - float(maxe) / float(2 * nbins)
-        he_lim_sup = maxe + float(maxe) / float(2 * nbins)
+        h0_lim_inf = min0-float(max0-min0)/float(2*nbins)
+        h0_lim_sup = max0 + float(max0-min0)/float(2*nbins)
+        he_lim_inf = mine - float(maxe-mine) / float(2 * nbins)
+        he_lim_sup = maxe + float(maxe-mine) / float(2 * nbins)
         self.hq0h0 = TH1F('q0h0'+self.analyze_info.monte_carlo_to_analyse, 'q0_H0_'+self.analyze_info.monte_carlo_to_analyse,
                      nbins + 1, h0_lim_inf, h0_lim_sup)
         self.hq0h0.SetLineColor(TColor.kRed)
@@ -378,16 +389,31 @@ class Analysis:
         self.hqeh0.GetQuantiles(3, b1, a1)
         self.hmedian = b1[1]
 
-        # a2 = linspace(0, 100, 101)
-        # b2 = array('d', [0]*101)
-        # self.hqeh0.GetQuantiles(101, b2, a2)s
-        # print '5% is ' +str(b2[100] - b2[95])
+    def search_pvalues(self, mu_excl=1, max_bin_value=-1, doLogY=kTRUE):
+        self.create_q_histograms(mu_excl, max_bin_value, doLogY)
+        a1 = linspace(0, 1, 2001)
+        b1 = array('d', [0]*2001)
+        self.p_val_sb = -1
+        self.hqeh1.GetQuantiles(2001, b1, a1)
+        for i in linspace(2000, 0, 2001):
+            if int(self.p_val_sb) == -1 and b1[int(i)] < self.qedata_sgnbkg:
+                self.p_val_sb = 1-a1[int(i)]
+        if self.p_val_sb == -1:
+            self.p_val_sb = 1-a1[0]
+        b2 = array('d', [0]*2001)
+        self.p_val_b = -1
+        self.hqeh0.GetQuantiles(2001, b2, a1)
+        for i in linspace(0,2000, 2001):
+            if int(self.p_val_b) == -1 and b2[int(i)] > self.qedata_sgnbkg:
+                self.p_val_b = a1[int(i)]
+        if self.p_val_b == -1:
+            self.p_val_b = a1[-1]
+        if self.p_val_b == 1:
+            self.cls = 0
+        else:
+            self.cls = float(self.p_val_sb)/float(1-self.p_val_b)
+        print 'With a CL of {val}%, we can exclude the s+b with mu = 1'.format(val=100*(1-self.cls))
 
-
-    # def p_value(self, mu_excl=1):
-    #     q = self.calculate_q_data(mu_excl)
-    #     sigma =
-    #     Math.gaussian_quantile_c(q, sigma)
 
     def search_maximum_value_q(self, variable):
         max = 0
@@ -403,6 +429,24 @@ class Analysis:
             if value > max:
                 max = value
         return max
+
+    def search_minimum_value_q(self,variable):
+        min = 100000
+        for i in  xrange(self.analyze_info.number_toys):
+            if variable == 'q0h0':
+                value = self.profile_likelihoods_list[i].q0_bkg
+            elif variable == 'q0h1':
+                value = self.profile_likelihoods_list[i].q0_sgnbkg
+            elif variable == 'qeh0':
+                value = self.profile_likelihoods_list[i].qe_bkg
+            else:
+                value = self.profile_likelihoods_list[i].qe_sgnbkg
+                if value < min:
+                    min = value
+        return min
+
+
+
 
 # This is the main that it is called if you start the python script
 if __name__ == '__main__':
